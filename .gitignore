@@ -137,3 +137,32 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# --- Java build and IDE files ---
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+/out/
+/target/
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# --- Firebase additional files ---
+firebase-debug.log
+.firebaserc
+
+# --- Vite-specific cache (if not already covered) ---
+.vite/
+
+# --- Environment and IDE ---
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

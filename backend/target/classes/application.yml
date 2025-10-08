@@ -1,0 +1,59 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: penta-backend
+  
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# League of Legends API Configuration
+league:
+  api:
+    base-url: https://127.0.0.1:2999
+    timeout: 5000
+
+# Riot API Configuration
+riot:
+  api:
+    key: ${RIOT_API_KEY:your-riot-api-key-here}
+    base-url: https://americas.api.riotgames.com
+    timeout: 10000
+    rate-limit:
+      requests-per-second: 100
+      requests-per-two-minutes: 100
+
+# u.gg Configuration
+ugg:
+  base-url: https://u.gg
+  timeout: 10000
+
+# Firebase Configuration
+firebase:
+  project-id: ${FIREBASE_PROJECT_ID:your-project-id}
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
+
+logging:
+  level:
+    com.penta: DEBUG
+    org.springframework.web: DEBUG

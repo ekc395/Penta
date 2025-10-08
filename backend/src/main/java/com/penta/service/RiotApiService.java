@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class RiotApiService {
@@ -197,7 +196,7 @@ public class RiotApiService {
     
     private Champion convertToChampion(RiotChampionDto championDto) {
         Champion champion = new Champion();
-        champion.setChampionId(championDto.getId());
+        champion.setChampionId(Integer.parseInt(championDto.getId()));
         champion.setName(championDto.getName());
         champion.setTitle(championDto.getTitle());
         champion.setImageUrl(String.format("https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/%s.png", 

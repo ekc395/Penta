@@ -1,6 +1,5 @@
 package com.penta.service;
 
-import com.penta.model.Champion;
 import com.penta.model.Player;
 import com.penta.model.PlayerChampion;
 import com.penta.model.PlayerMatch;

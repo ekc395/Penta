@@ -1,6 +1,5 @@
 package com.penta.service;
 
-import com.penta.model.Champion;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -147,16 +146,12 @@ public class UggDataService {
     }
     
     private Map<String, Integer> scrapeTierListData(String role) throws IOException {
-        Map<String, Integer> tierData = new HashMap<>();
-        
         // This would scrape actual tier list data from u.gg
         // For now, returning mock data
         return createMockTierListData(role);
     }
     
     private Map<String, ChampionStats> scrapeChampionStats(String role) throws IOException {
-        Map<String, ChampionStats> statsData = new HashMap<>();
-        
         // This would scrape actual champion stats from u.gg
         // For now, returning mock data
         return createMockChampionStats(role);

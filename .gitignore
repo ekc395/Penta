@@ -150,6 +150,10 @@ vite.config.ts.timestamp-*
 build/
 !gradle/wrapper/gradle-wrapper.jar
 
+# --- Spring Boot local configuration files ---
+**/application-local.yml
+**/application-local.yaml
+
 # --- Firebase additional files ---
 firebase-debug.log
 .firebaserc

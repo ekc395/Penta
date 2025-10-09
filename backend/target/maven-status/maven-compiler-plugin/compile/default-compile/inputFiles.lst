@@ -19,6 +19,7 @@
 /Users/sarju/Penta/backend/src/main/java/com/penta/repository/PlayerRepository.java
 /Users/sarju/Penta/backend/src/main/java/com/penta/repository/ChampionMatchupRepository.java
 /Users/sarju/Penta/backend/src/main/java/com/penta/model/Match.java
+/Users/sarju/Penta/backend/src/main/java/com/penta/config/SecurityConfig.java
 /Users/sarju/Penta/backend/src/main/java/com/penta/config/RiotApiConfig.java
 /Users/sarju/Penta/backend/src/main/java/com/penta/controller/ChampionRecommendationController.java
 /Users/sarju/Penta/backend/src/main/java/com/penta/model/Team.java

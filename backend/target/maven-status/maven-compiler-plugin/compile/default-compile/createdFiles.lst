@@ -22,10 +22,8 @@ com/penta/model/ChampionMatchup.class
 com/penta/controller/DataCollectionController$CollectPlayersRequest.class
 com/penta/model/Player.class
 com/penta/dto/PlayerChampionDto.class
-com/penta/model/ChampionMatchup$ChampionMatchupTable.class
 com/penta/model/PlayerChampion.class
 com/penta/dto/SynergyDto.class
-com/penta/model/ChampionSynergy$ChampionSynergyTable.class
 com/penta/model/Champion.class
 com/penta/controller/ChampionRecommendationController$TeamRecommendationRequest.class
 com/penta/controller/ChampionRecommendationController.class

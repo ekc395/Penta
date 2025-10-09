@@ -153,25 +153,27 @@ public class RiotApiService {
     }
     
     /**
-     * Get all champions data
+     * Get all champions data from Data Dragon
      */
     public List<Champion> getAllChampions() {
         try {
-            String url = "/lol/platform/v3/champions";
+            // Use Data Dragon instead of the API
+            String url = "https://ddragon.leagueoflegends.com/cdn/14.1.1/data/en_US/champion.json";
             
-            RiotChampionsDto champions = riotWebClient
+            WebClient ddragonClient = WebClient.create();
+            RiotChampionsDto champions = ddragonClient
                     .get()
                     .uri(url)
                     .retrieve()
                     .bodyToMono(RiotChampionsDto.class)
                     .block();
             
-            if (champions != null) {
+            if (champions != null && champions.getData() != null) {
                 return champions.getData().values().stream()
                         .map(this::convertToChampion)
                         .toList();
             }
-        } catch (WebClientResponseException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error fetching champions: " + e.getMessage());
         }
         
@@ -196,7 +198,7 @@ public class RiotApiService {
     
     private Champion convertToChampion(RiotChampionDto championDto) {
         Champion champion = new Champion();
-        champion.setChampionId(Integer.parseInt(championDto.getId()));
+        champion.setChampionId(championDto.getKey() != null ? Integer.parseInt(championDto.getKey()) : 0);
         champion.setName(championDto.getName());
         champion.setTitle(championDto.getTitle());
         champion.setImageUrl(String.format("https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/%s.png", 
@@ -204,6 +206,11 @@ public class RiotApiService {
         champion.setSplashUrl(String.format("https://ddragon.leagueoflegends.com/cdn/img/champion/splash/%s_0.jpg", 
                 championDto.getId()));
         champion.setTags(String.join(",", championDto.getTags()));
+        
+
+        // Set default values for required fields
+        champion.setLane("ALL");
+        champion.setRole("ALL");
         
         return champion;
     }
@@ -380,6 +387,7 @@ public class RiotApiService {
     
     public static class RiotChampionDto {
         private String id;
+        private String key;
         private String name;
         private String title;
         private RiotChampionImageDto image;
@@ -388,6 +396,8 @@ public class RiotApiService {
         // Getters and setters
         public String getId() { return id; }
         public void setId(String id) { this.id = id; }
+        public String getKey() { return key; }
+        public void setKey(String key) { this.key = key; }
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
         public String getTitle() { return title; }

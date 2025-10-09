@@ -5,6 +5,9 @@ import com.penta.dto.ChampionDto;
 import com.penta.model.Champion;
 import com.penta.model.Player;
 import com.penta.model.PlayerChampion;
+import com.penta.service.UggDataService.CounterData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +16,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class ChampionRecommendationService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(ChampionRecommendationService.class);
     
     @Autowired
     private UggDataService uggDataService;
@@ -33,6 +38,7 @@ public class ChampionRecommendationService {
         // Get player data
         Optional<Player> playerOpt = leagueApiService.getPlayerBySummonerName(summonerName, region);
         if (playerOpt.isEmpty()) {
+            logger.warn("Player not found: {} in region {}", summonerName, region);
             return Collections.emptyList();
         }
         
@@ -111,12 +117,17 @@ public class ChampionRecommendationService {
      * Calculate team synergy score
      */
     private double calculateTeamSynergy(Champion champion, List<String> teamChampions) {
-        if (teamChampions.isEmpty()) {
+        if (teamChampions == null || teamChampions.isEmpty()) {
             return 0.5; // Neutral score if no team data
         }
         
-        Map<String, Double> synergyData = uggDataService.getChampionSynergy(champion.getName());
+        Optional<Map<String, Double>> synergyDataOpt = uggDataService.getChampionSynergy(champion.getName());
         
+        if (synergyDataOpt.isEmpty()) {
+            return 0.5; // Neutral score if data fetch failed
+        }
+        
+        Map<String, Double> synergyData = synergyDataOpt.get();
         double totalSynergy = 0.0;
         int validChampions = 0;
         
@@ -138,18 +149,32 @@ public class ChampionRecommendationService {
      * Calculate opponent matchup score
      */
     private double calculateOpponentMatchup(Champion champion, List<String> opponentChampions) {
-        if (opponentChampions.isEmpty()) {
+        if (opponentChampions == null || opponentChampions.isEmpty()) {
             return 0.5; // Neutral score if no opponent data
         }
         
-        Map<String, Double> matchupData = uggDataService.getChampionMatchups(champion.getName());
+        Optional<List<CounterData>> matchupDataOpt = uggDataService.getGoodMatchups(champion.getName());
+        
+        if (matchupDataOpt.isEmpty()) {
+            return 0.5; // Neutral score if data fetch failed
+        }
+        
+        List<CounterData> matchupData = matchupDataOpt.get();
+        
+        // Create a map for easier lookup
+        Map<String, Double> matchupMap = matchupData.stream()
+                .collect(Collectors.toMap(
+                    CounterData::getChampionName,
+                    CounterData::getWinRate,
+                    (existing, replacement) -> existing // Handle duplicates by keeping first
+                ));
         
         double totalMatchup = 0.0;
         int validChampions = 0;
         
         for (String opponentChampion : opponentChampions) {
-            if (matchupData.containsKey(opponentChampion)) {
-                totalMatchup += matchupData.get(opponentChampion);
+            if (matchupMap.containsKey(opponentChampion)) {
+                totalMatchup += matchupMap.get(opponentChampion);
                 validChampions++;
             }
         }

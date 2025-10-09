@@ -335,17 +335,12 @@ public class UggDataService {
             try {
                 String champion = element.select(".champion-name, .name").text();
                 String wrText = element.select(".win-rate, .wr").text().replace("%", "").trim();
-                String prText = element.select(".pick-rate, .pr").text().replace("%", "").trim();
-                String brText = element.select(".ban-rate, .br").text().replace("%", "").trim();
                 String tierText = element.select(".tier").text().trim();
                 
                 if (!champion.isEmpty() && !wrText.isEmpty()) {
                     double winRate = Double.parseDouble(wrText);
-                    double pickRate = prText.isEmpty() ? 0.0 : Double.parseDouble(prText);
-                    double banRate = brText.isEmpty() ? 0.0 : Double.parseDouble(brText);
                     int tier = tierText.isEmpty() ? 0 : Integer.parseInt(tierText);
-                    
-                    stats.put(champion, new ChampionStats(winRate, pickRate, banRate, tier));
+                    stats.put(champion, new ChampionStats(winRate, tier));
                 }
             } catch (NumberFormatException e) {
                 logger.warn("Failed to parse champion stats: {}", e.getMessage());
@@ -402,14 +397,10 @@ public class UggDataService {
     
     public static class ChampionStats {
         public double winRate;
-        public double pickRate;
-        public double banRate;
         public int tier;
         
-        public ChampionStats(double winRate, double pickRate, double banRate, int tier) {
+        public ChampionStats(double winRate, int tier) {
             this.winRate = winRate;
-            this.pickRate = pickRate;
-            this.banRate = banRate;
             this.tier = tier;
         }
     }

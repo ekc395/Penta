@@ -8,7 +8,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "champion_matchups")
+@Table(name = "champion_matchups", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"champion1_id", "champion2_id", "patch", "rank", "role"})
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -54,11 +56,4 @@ public class ChampionMatchup {
     
     @Column(nullable = false)
     private LocalDateTime lastUpdated;
-    
-    // Ensure unique combination of champions, patch, rank, and role
-    @Table(uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"champion1_id", "champion2_id", "patch", "rank", "role"})
-    })
-    public static class ChampionMatchupTable {
-    }
 }

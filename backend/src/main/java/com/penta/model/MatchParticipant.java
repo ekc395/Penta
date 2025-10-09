@@ -20,6 +20,10 @@ public class MatchParticipant {
     private Match match;
     
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id_fk")
+    private Team team;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "player_id")
     private Player player;
     
@@ -30,6 +34,7 @@ public class MatchParticipant {
     @Column(nullable = false)
     private Integer teamId;
     
+    // ... rest of your fields stay the same
     @Column(nullable = false)
     private Integer participantId;
     

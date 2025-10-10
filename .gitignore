@@ -170,3 +170,10 @@ firebase-debug.log
 .idea/
 .DS_Store
 Thumbs.db
+
+# Maven
+target/
+**/target/
+*.jar
+*.war
+*.class

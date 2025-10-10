@@ -7,11 +7,15 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 @Service
 public class UggDataService {
@@ -27,57 +31,60 @@ public class UggDataService {
     @Value("${ugg.base-url}")
     private String baseUrl;
     
-    @Value("${ugg.timeout}")
+    @Value("${ugg.timeout:5000}")
     private int timeout;
     
-    private final Map<String, Map<String, Double>> synergyCache = new ConcurrentHashMap<>();
-    private final Map<String, List<CounterData>> goodMatchupsCache = new ConcurrentHashMap<>();
+    @Value("${ugg.max-retries:3}")
+    private int maxRetries;
     
-    // Simple rate limiting - tracks last request time per domain
-    private long lastRequestTime = 0;
-    private static final long MIN_REQUEST_INTERVAL_MS = 1000; // 1 second between requests
+    @Value("${ugg.cache-ttl-minutes:60}")
+    private int cacheTtlMinutes;
+    
+    // Thread-safe cache with TTL
+    private final Map<String, CacheEntry<Map<String, Double>>> synergyCache = new ConcurrentHashMap<>();
+    private final Map<String, CacheEntry<List<CounterData>>> goodMatchupsCache = new ConcurrentHashMap<>();
+    
+    // Rate limiter using semaphore
+    private final Semaphore rateLimiter = new Semaphore(1);
+    private volatile Instant lastRequestTime = Instant.now();
+    private static final Duration MIN_REQUEST_INTERVAL = Duration.ofMillis(1000);
     
     /**
-     * Get good matchups for a champion (champions that struggle against it)
-     * Scrapes data from the "Worst Picks" column on U.GG
+     * Get good matchups for a champion with caching
      */
+    @Cacheable(value = "goodMatchups", key = "#championName")
     public Optional<List<CounterData>> getGoodMatchups(String championName) {
-        if (goodMatchupsCache.containsKey(championName)) {
-            return Optional.of(goodMatchupsCache.get(championName));
+        CacheEntry<List<CounterData>> cached = goodMatchupsCache.get(championName);
+        if (cached != null && !cached.isExpired(cacheTtlMinutes)) {
+            return Optional.of(cached.data);
         }
         
         try {
-            List<CounterData> goodMatchups = scrapeWorstPicks(championName);
-            goodMatchupsCache.put(championName, goodMatchups);
+            List<CounterData> goodMatchups = scrapeWorstPicksWithRetry(championName);
+            goodMatchupsCache.put(championName, new CacheEntry<>(goodMatchups));
             return Optional.of(goodMatchups);
-        } catch (IOException e) {
-            logger.error("Failed to scrape good matchups for {}: {}", championName, e.getMessage());
-            return Optional.empty();
-        } catch (InterruptedException e) {
-            logger.error("Rate limiting interrupted for {}", championName);
-            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            logger.error("Failed to fetch good matchups for {}: {}", championName, e.getMessage());
             return Optional.empty();
         }
     }
     
     /**
-     * Get synergy data between champions
+     * Get synergy data with caching
      */
+    @Cacheable(value = "synergy", key = "#championName")
     public Optional<Map<String, Double>> getChampionSynergy(String championName) {
-        if (synergyCache.containsKey(championName)) {
-            return Optional.of(synergyCache.get(championName));
+        CacheEntry<Map<String, Double>> cached = synergyCache.get(championName);
+        if (cached != null && !cached.isExpired(cacheTtlMinutes)) {
+            return Optional.of(cached.data);
         }
         
         try {
-            Map<String, Double> synergyData = scrapeSynergyData(championName);
-            synergyCache.put(championName, synergyData);
+            Map<String, Double> synergyData = scrapeSynergyDataWithRetry(championName);
+            synergyCache.put(championName, new CacheEntry<>(synergyData));
             return Optional.of(synergyData);
-        } catch (IOException e) {
-            logger.error("Failed to scrape synergy data for {}: {}", championName, e.getMessage());
-            return Optional.empty();
-        } catch (InterruptedException e) {
-            logger.error("Rate limiting interrupted for {}", championName);
-            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            logger.error("Failed to fetch synergy for {}: {}", championName, e.getMessage());
             return Optional.empty();
         }
     }
@@ -87,38 +94,305 @@ public class UggDataService {
      */
     public Optional<Map<String, Integer>> getChampionTierList(String role) {
         try {
-            Map<String, Integer> tierList = scrapeTierListData(role);
+            Map<String, Integer> tierList = scrapeTierListDataWithRetry(role);
             return Optional.of(tierList);
-        } catch (IOException e) {
-            logger.error("Failed to scrape tier list for role {}: {}", role, e.getMessage());
-            return Optional.empty();
-        } catch (InterruptedException e) {
-            logger.error("Rate limiting interrupted for tier list: {}", role);
-            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            logger.error("Failed to fetch tier list for role {}: {}", role, e.getMessage());
             return Optional.empty();
         }
     }
     
     /**
-     * Get champion win rates and pick rates (DONT THINK WE NEED PICK RATES HERE)
+     * Get champion win rates
      */
     public Optional<Map<String, ChampionStats>> getChampionStats(String role) {
         try {
-            Map<String, ChampionStats> stats = scrapeChampionStats(role);
+            Map<String, ChampionStats> stats = scrapeChampionStatsWithRetry(role);
             return Optional.of(stats);
-        } catch (IOException e) {
-            logger.error("Failed to scrape champion stats for role {}: {}", role, e.getMessage());
-            return Optional.empty();
-        } catch (InterruptedException e) {
-            logger.error("Rate limiting interrupted for stats: {}", role);
-            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            logger.error("Failed to fetch champion stats for role {}: {}", role, e.getMessage());
             return Optional.empty();
         }
+    }
+    
+    /**
+     * Scrape with retry logic
+     */
+    private List<CounterData> scrapeWorstPicksWithRetry(String championName) throws IOException, InterruptedException {
+        return retryOperation(() -> scrapeWorstPicks(championName), "worst picks for " + championName);
+    }
+    
+    private Map<String, Double> scrapeSynergyDataWithRetry(String championName) throws IOException, InterruptedException {
+        return retryOperation(() -> scrapeSynergyData(championName), "synergy for " + championName);
+    }
+    
+    private Map<String, Integer> scrapeTierListDataWithRetry(String role) throws IOException, InterruptedException {
+        return retryOperation(() -> scrapeTierListData(role), "tier list for " + role);
+    }
+    
+    private Map<String, ChampionStats> scrapeChampionStatsWithRetry(String role) throws IOException, InterruptedException {
+        return retryOperation(() -> scrapeChampionStats(role), "stats for " + role);
+    }
+    
+    /**
+     * Generic retry operation with exponential backoff
+     */
+    private <T> T retryOperation(SupplierWithException<T> operation, String operationName) 
+            throws IOException, InterruptedException {
+        int attempt = 0;
+        Exception lastException = null;
+        
+        while (attempt < maxRetries) {
+            try {
+                return operation.get();
+            } catch (IOException e) {
+                lastException = e;
+                attempt++;
+                if (attempt < maxRetries) {
+                    long backoffMs = (long) Math.pow(2, attempt) * 1000;
+                    Thread.sleep(backoffMs);
+                }
+            }
+        }
+        
+        throw new IOException("Failed after " + maxRetries + " retries for " + operationName, lastException);
+    }
+    
+    @FunctionalInterface
+    private interface SupplierWithException<T> {
+        T get() throws IOException, InterruptedException;
+    }
+    
+    /**
+     * Rate limiting with token bucket
+     */
+    private void rateLimit() throws InterruptedException {
+        rateLimiter.acquire();
+        try {
+            Instant now = Instant.now();
+            Duration elapsed = Duration.between(lastRequestTime, now);
+            
+            if (elapsed.compareTo(MIN_REQUEST_INTERVAL) < 0) {
+                Duration sleepDuration = MIN_REQUEST_INTERVAL.minus(elapsed);
+                Thread.sleep(sleepDuration.toMillis());
+            }
+            
+            lastRequestTime = Instant.now();
+        } finally {
+            rateLimiter.release();
+        }
+    }
+    
+    /**
+     * Fetch document with proper error handling
+     */
+    private Document fetchDocument(String url) throws IOException, InterruptedException {
+        rateLimit();
+        
+        try {
+            return Jsoup.connect(url)
+                    .userAgent(USER_AGENT)
+                    .header("Accept", ACCEPT_HEADER)
+                    .header("Accept-Language", ACCEPT_LANGUAGE)
+                    .header("Cache-Control", "no-cache")
+                    .timeout(timeout)
+                    .followRedirects(true)
+                    .maxBodySize(0)
+                    .get();
+        } catch (IOException e) {
+            logger.error("Failed to fetch {}: {}", url, e.getMessage());
+            throw e;
+        }
+    }
+    
+    /**
+     * Scrape worst picks using precise CSS selectors based on U.GG's actual HTML structure
+     * Structure: a.flex.items-center.p-[12px] contains the champion row data
+     */
+    private List<CounterData> scrapeWorstPicks(String championName) throws IOException, InterruptedException {
+        String url = baseUrl + "/lol/champions/" + championName.toLowerCase() + "/counter";
+        Document doc = fetchDocument(url);
+        
+        // Select all champion rows - these are <a> tags with specific classes
+        // The container has class "bg-purple-400" and rows are direct children
+        Elements championRows = doc.select("a.flex.items-center[class*=p-\\[12px\\]]");
+        
+        if (championRows.isEmpty()) {
+            championRows = doc.select("a:has(div.text-white.font-bold.truncate)");
+        }
+        
+        if (championRows.isEmpty()) {
+            logger.error("No worst picks data found for {}", championName);
+            return Collections.emptyList();
+        }
+        
+        List<CounterData> worstPicks = new ArrayList<>();
+        
+        for (Element row : championRows) {
+            try {
+                // Champion name: div with classes "text-white text-[14px] font-bold truncate"
+                Element nameElement = row.selectFirst("div.text-white.font-bold.truncate");
+                if (nameElement == null) continue;
+                String champName = nameElement.text().trim();
+                
+                // Win rate: div with class "text-accent-orange-500" containing "WR"
+                Element wrElement = row.selectFirst("div.text-accent-orange-500");
+                if (wrElement == null) continue;
+                String wrText = wrElement.text().replace("% WR", "").replace("%", "").trim();
+                
+                // Games: div with class "text-accent-gray-100" and "text-[11px]" containing "games"
+                Element gamesElement = row.selectFirst("div.text-accent-gray-100.text-\\[11px\\]");
+                if (gamesElement == null) {
+                    // Fallback: find any element with "games" text
+                    Elements possibleGames = row.select("div:containsOwn(games)");
+                    gamesElement = possibleGames.isEmpty() ? null : possibleGames.first();
+                }
+                
+                String gamesText = gamesElement != null ? 
+                    gamesElement.text().replace("games", "").replace(",", "").trim() : "0";
+                
+                // Parse the data
+                if (!champName.isEmpty() && !wrText.isEmpty()) {
+                    double winRate = Double.parseDouble(wrText);
+                    int games = gamesText.isEmpty() ? 0 : Integer.parseInt(gamesText);
+                    
+                    // Validation
+                    if (winRate >= 0 && winRate <= 100 && games >= 0) {
+                        worstPicks.add(new CounterData(champName, winRate, games));
+                    }
+                }
+            } catch (NumberFormatException e) {
+                // Skip invalid data
+            }
+        }
+        
+        if (worstPicks.isEmpty()) {
+            logger.warn("No valid worst picks data extracted for {}", championName);
+        }
+        
+        return worstPicks;
+    }
+    
+    /**
+     * Scrape synergy data using similar structure to worst picks
+     */
+    private Map<String, Double> scrapeSynergyData(String championName) throws IOException, InterruptedException {
+        String url = baseUrl + "/lol/champions/" + championName.toLowerCase() + "/synergy";
+        Document doc = fetchDocument(url);
+        
+        Map<String, Double> synergyData = new HashMap<>();
+        
+        // Use similar selector pattern as worst picks
+        Elements synergyRows = doc.select("a.flex.items-center[class*=p-\\[12px\\]]");
+        
+        if (synergyRows.isEmpty()) {
+            synergyRows = doc.select("a:has(div.text-white.font-bold.truncate)");
+        }
+        
+        for (Element row : synergyRows) {
+            try {
+                Element nameElement = row.selectFirst("div.text-white.font-bold.truncate");
+                if (nameElement == null) continue;
+                String champion = nameElement.text().trim();
+                
+                // Win rate for synergy might have different color class
+                Element wrElement = row.selectFirst("div[class*=text-accent-]:containsOwn(WR)");
+                if (wrElement == null) continue;
+                String wrText = wrElement.text().replace("% WR", "").replace("%", "").trim();
+                
+                if (!champion.isEmpty() && !wrText.isEmpty()) {
+                    double winRate = Double.parseDouble(wrText);
+                    if (winRate >= 0 && winRate <= 100) {
+                        synergyData.put(champion, winRate);
+                    }
+                }
+            } catch (NumberFormatException e) {
+                // Skip invalid data
+            }
+        }
+        
+        return synergyData;
+    }
+    
+    /**
+     * Scrape tier list data
+     */
+    private Map<String, Integer> scrapeTierListData(String role) throws IOException, InterruptedException {
+        String url = baseUrl + "/lol/tier-list?role=" + role.toLowerCase();
+        Document doc = fetchDocument(url);
+        
+        Map<String, Integer> tierList = new HashMap<>();
+        
+        // Similar structure to counter page
+        Elements championRows = doc.select("a.flex.items-center[class*=p-\\[12px\\]]");
+        
+        for (Element row : championRows) {
+            try {
+                Element nameElement = row.selectFirst("div.text-white.font-bold.truncate");
+                if (nameElement == null) continue;
+                String champion = nameElement.text().trim();
+                
+                // Look for tier indicator - might be a number or badge
+                Elements tierElements = row.select("div:matches(^[1-5]$)");
+                if (tierElements.isEmpty()) continue;
+                
+                String tierText = tierElements.first().text().trim();
+                if (!champion.isEmpty() && !tierText.isEmpty()) {
+                    int tier = Integer.parseInt(tierText);
+                    tierList.put(champion, tier);
+                }
+            } catch (NumberFormatException e) {
+                // Skip invalid data
+            }
+        }
+        
+        return tierList;
+    }
+    
+    /**
+     * Scrape champion stats
+     */
+    private Map<String, ChampionStats> scrapeChampionStats(String role) throws IOException, InterruptedException {
+        String url = baseUrl + "/lol/tier-list?role=" + role.toLowerCase();
+        Document doc = fetchDocument(url);
+        
+        Map<String, ChampionStats> stats = new HashMap<>();
+        
+        Elements championRows = doc.select("a.flex.items-center[class*=p-\\[12px\\]]");
+        
+        for (Element row : championRows) {
+            try {
+                Element nameElement = row.selectFirst("div.text-white.font-bold.truncate");
+                if (nameElement == null) continue;
+                String champion = nameElement.text().trim();
+                
+                Element wrElement = row.selectFirst("div[class*=text-accent-]:containsOwn(WR)");
+                if (wrElement == null) continue;
+                String wrText = wrElement.text().replace("% WR", "").replace("%", "").trim();
+                
+                Elements tierElements = row.select("div:matches(^[1-5]$)");
+                String tierText = tierElements.isEmpty() ? "0" : tierElements.first().text().trim();
+                
+                if (!champion.isEmpty() && !wrText.isEmpty()) {
+                    double winRate = Double.parseDouble(wrText);
+                    int tier = tierText.isEmpty() ? 0 : Integer.parseInt(tierText);
+                    
+                    if (winRate >= 0 && winRate <= 100) {
+                        stats.put(champion, new ChampionStats(winRate, tier));
+                    }
+                }
+            } catch (NumberFormatException e) {
+                // Skip invalid data
+            }
+        }
+        
+        return stats;
     }
     
     /**
      * Clear all caches
      */
+    @CacheEvict(value = {"goodMatchups", "synergy"}, allEntries = true)
     public void clearCache() {
         synergyCache.clear();
         goodMatchupsCache.clear();
@@ -127,236 +401,36 @@ public class UggDataService {
     /**
      * Clear cache for specific champion
      */
+    @CacheEvict(value = {"goodMatchups", "synergy"}, key = "#championName")
     public void clearCacheForChampion(String championName) {
         synergyCache.remove(championName);
         goodMatchupsCache.remove(championName);
     }
     
     /**
-     * Simple rate limiting - ensures minimum time between requests
+     * Cache entry with TTL
      */
-    private synchronized void rateLimit() throws InterruptedException {
-        long currentTime = System.currentTimeMillis();
-        long timeSinceLastRequest = currentTime - lastRequestTime;
+    private static class CacheEntry<T> {
+        final T data;
+        final Instant timestamp;
         
-        if (timeSinceLastRequest < MIN_REQUEST_INTERVAL_MS) {
-            long sleepTime = MIN_REQUEST_INTERVAL_MS - timeSinceLastRequest;
-            Thread.sleep(sleepTime);
+        CacheEntry(T data) {
+            this.data = data;
+            this.timestamp = Instant.now();
         }
         
-        lastRequestTime = System.currentTimeMillis();
+        boolean isExpired(int ttlMinutes) {
+            return Duration.between(timestamp, Instant.now()).toMinutes() > ttlMinutes;
+        }
     }
     
     /**
-     * Creates a Jsoup connection with standard headers and rate limiting
-     */
-    private Document fetchDocument(String url) throws IOException, InterruptedException {
-        rateLimit();
-        
-        return Jsoup.connect(url)
-                .userAgent(USER_AGENT)
-                .header("Accept", ACCEPT_HEADER)
-                .header("Accept-Language", ACCEPT_LANGUAGE)
-                .timeout(timeout)
-                .get();
-    }
-    
-    /**
-     * Scrapes worst picks data from U.GG counter page using CSS selectors
-     */
-    private List<CounterData> scrapeWorstPicks(String championName) throws IOException, InterruptedException {
-        List<CounterData> worstPicks = new ArrayList<>();
-        
-        String url = baseUrl + "/lol/champions/" + championName.toLowerCase() + "/counter";
-        
-        Document doc = fetchDocument(url);
-        
-        // Try multiple potential CSS selectors for worst picks section
-        Elements worstPickRows = doc.select(".worst-picks .champion-row, .worst-matchups .row, [data-worst-picks] .champion");
-        
-        if (worstPickRows.isEmpty()) {
-            logger.warn("No worst picks elements found using CSS selectors for {}, falling back to text parsing", championName);
-            return parseWorstPicksFromText(doc);
-        }
-        
-        // Parse using CSS selectors
-        for (Element row : worstPickRows) {
-            try {
-                String champName = row.select(".champion-name, .name").text();
-                String winRateText = row.select(".win-rate, .wr, [data-win-rate]").text().replace("%", "").trim();
-                String gamesText = row.select(".games, .matches, [data-games]").text().replace(",", "").trim();
-                
-                if (!champName.isEmpty() && !winRateText.isEmpty()) {
-                    double winRate = Double.parseDouble(winRateText);
-                    int games = gamesText.isEmpty() ? 0 : Integer.parseInt(gamesText);
-                    
-                    worstPicks.add(new CounterData(champName, winRate, games));
-                }
-            } catch (NumberFormatException e) {
-                logger.warn("Failed to parse row data: {}", e.getMessage());
-            }
-        }
-        
-        return worstPicks;
-    }
-    
-    /**
-     * Fallback text parsing method if CSS selectors fail (NEED TO EITHER FIND A WAY FOR CSS SELECTORS NOT TO FAIL OR MAKE THIS MORE EFFICIENT)
-     */
-    private List<CounterData> parseWorstPicksFromText(Document doc) {
-        List<CounterData> worstPicks = new ArrayList<>();
-        String text = doc.body().text();
-        
-        int worstPicksIndex = text.indexOf("Worst Picks vs");
-        int bestLaneIndex = text.indexOf("Best Lane Counters", worstPicksIndex);
-        
-        if (worstPicksIndex == -1 || bestLaneIndex == -1) {
-            logger.warn("Could not find 'Worst Picks' section in page text");
-            return worstPicks;
-        }
-        
-        String worstPicksSection = text.substring(worstPicksIndex, bestLaneIndex);
-        String[] lines = worstPicksSection.split("(?=\\d+\\.\\d+% WR)");
-        
-        for (String line : lines) {
-            if (line.contains("% WR") && line.contains("games")) {
-                String[] parts = line.trim().split("\\s+");
-                
-                if (parts.length >= 4) {
-                    int wrIndex = -1;
-                    for (int i = 0; i < parts.length; i++) {
-                        if (parts[i].endsWith("%")) {
-                            wrIndex = i;
-                            break;
-                        }
-                    }
-                    
-                    if (wrIndex > 0 && wrIndex + 2 < parts.length) {
-                        StringBuilder champName = new StringBuilder();
-                        for (int i = 0; i < wrIndex; i++) {
-                            if (champName.length() > 0) champName.append(" ");
-                            champName.append(parts[i]);
-                        }
-                        
-                        String wr = parts[wrIndex].replace("%", "");
-                        String games = parts[wrIndex + 2];
-                        
-                        if (!champName.toString().isEmpty()) {
-                            try {
-                                double winRate = Double.parseDouble(wr);
-                                int gamesPlayed = Integer.parseInt(games);
-                                
-                                worstPicks.add(new CounterData(
-                                    champName.toString().trim(),
-                                    winRate,
-                                    gamesPlayed
-                                ));
-                            } catch (NumberFormatException e) {
-                                logger.warn("Failed to parse numeric data: {}", e.getMessage());
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        return worstPicks;
-    }
-    
-    private Map<String, Double> scrapeSynergyData(String championName) throws IOException, InterruptedException {
-        Map<String, Double> synergyData = new HashMap<>();
-        
-        String url = baseUrl + "/lol/champions/" + championName.toLowerCase() + "/synergy";
-        
-        Document doc = fetchDocument(url);
-        
-        // Use CSS selectors for synergy data
-        Elements synergyElements = doc.select(".synergy-item, .duo-row, [data-synergy] .champion");
-        
-        for (Element element : synergyElements) {
-            try {
-                String champion = element.select(".champion-name, .name").text();
-                String winRateText = element.select(".win-rate, .wr").text().replace("%", "").trim();
-                
-                if (!champion.isEmpty() && !winRateText.isEmpty()) {
-                    double winRate = Double.parseDouble(winRateText);
-                    synergyData.put(champion, winRate);
-                }
-            } catch (NumberFormatException e) {
-                logger.warn("Failed to parse synergy data: {}", e.getMessage());
-            }
-        }
-        
-        if (synergyData.isEmpty()) {
-            logger.warn("No synergy data found for {}", championName);
-        }
-        
-        return synergyData;
-    }
-    
-    private Map<String, Integer> scrapeTierListData(String role) throws IOException, InterruptedException {
-        Map<String, Integer> tierList = new HashMap<>();
-        
-        String url = baseUrl + "/lol/tier-list?role=" + role.toLowerCase();
-        
-        Document doc = fetchDocument(url);
-        
-        // Use CSS selectors for tier list
-        Elements tierElements = doc.select(".tier-list-row, [data-tier] .champion");
-        
-        for (Element element : tierElements) {
-            try {
-                String champion = element.select(".champion-name, .name").text();
-                String tierText = element.select(".tier, [data-tier]").text().trim();
-                
-                if (!champion.isEmpty() && !tierText.isEmpty()) {
-                    int tier = Integer.parseInt(tierText);
-                    tierList.put(champion, tier);
-                }
-            } catch (NumberFormatException e) {
-                logger.warn("Failed to parse tier data: {}", e.getMessage());
-            }
-        }
-        
-        return tierList;
-    }
-    
-    private Map<String, ChampionStats> scrapeChampionStats(String role) throws IOException, InterruptedException {
-        Map<String, ChampionStats> stats = new HashMap<>();
-        
-        String url = baseUrl + "/lol/tier-list?role=" + role.toLowerCase();
-        
-        Document doc = fetchDocument(url);
-        
-        // Use CSS selectors for champion stats
-        Elements statElements = doc.select(".champion-row, [data-champion-stats]");
-        
-        for (Element element : statElements) {
-            try {
-                String champion = element.select(".champion-name, .name").text();
-                String wrText = element.select(".win-rate, .wr").text().replace("%", "").trim();
-                String tierText = element.select(".tier").text().trim();
-                
-                if (!champion.isEmpty() && !wrText.isEmpty()) {
-                    double winRate = Double.parseDouble(wrText);
-                    int tier = tierText.isEmpty() ? 0 : Integer.parseInt(tierText);
-                    stats.put(champion, new ChampionStats(winRate, tier));
-                }
-            } catch (NumberFormatException e) {
-                logger.warn("Failed to parse champion stats: {}", e.getMessage());
-            }
-        }
-        
-        return stats;
-    }
-    
-    /**
-     * Data class for counter/worst pick information
+     * Counter data class
      */
     public static class CounterData {
-        private String championName;
-        private double winRate;
-        private int gamesPlayed;
+        private final String championName;
+        private final double winRate;
+        private final int gamesPlayed;
         
         public CounterData(String championName, double winRate, int gamesPlayed) {
             this.championName = championName;
@@ -364,29 +438,9 @@ public class UggDataService {
             this.gamesPlayed = gamesPlayed;
         }
         
-        public String getChampionName() {
-            return championName;
-        }
-        
-        public void setChampionName(String championName) {
-            this.championName = championName;
-        }
-        
-        public double getWinRate() {
-            return winRate;
-        }
-        
-        public void setWinRate(double winRate) {
-            this.winRate = winRate;
-        }
-        
-        public int getGamesPlayed() {
-            return gamesPlayed;
-        }
-        
-        public void setGamesPlayed(int gamesPlayed) {
-            this.gamesPlayed = gamesPlayed;
-        }
+        public String getChampionName() { return championName; }
+        public double getWinRate() { return winRate; }
+        public int getGamesPlayed() { return gamesPlayed; }
         
         @Override
         public String toString() {
@@ -396,8 +450,8 @@ public class UggDataService {
     }
     
     public static class ChampionStats {
-        public double winRate;
-        public int tier;
+        public final double winRate;
+        public final int tier;
         
         public ChampionStats(double winRate, int tier) {
             this.winRate = winRate;

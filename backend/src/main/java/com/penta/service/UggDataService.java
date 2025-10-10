@@ -37,13 +37,6 @@ public class UggDataService {
     @Value("${ugg.max-retries:3}")
     private int maxRetries;
     
-    @Value("${ugg.cache-ttl-minutes:60}")
-    private int cacheTtlMinutes;
-    
-    // Thread-safe cache with TTL
-    private final Map<String, CacheEntry<Map<String, Double>>> synergyCache = new ConcurrentHashMap<>();
-    private final Map<String, CacheEntry<List<CounterData>>> goodMatchupsCache = new ConcurrentHashMap<>();
-    
     // Rate limiter using semaphore
     private final Semaphore rateLimiter = new Semaphore(1);
     private volatile Instant lastRequestTime = Instant.now();
@@ -54,14 +47,8 @@ public class UggDataService {
      */
     @Cacheable(value = "goodMatchups", key = "#championName")
     public Optional<List<CounterData>> getGoodMatchups(String championName) {
-        CacheEntry<List<CounterData>> cached = goodMatchupsCache.get(championName);
-        if (cached != null && !cached.isExpired(cacheTtlMinutes)) {
-            return Optional.of(cached.data);
-        }
-        
         try {
             List<CounterData> goodMatchups = scrapeWorstPicksWithRetry(championName);
-            goodMatchupsCache.put(championName, new CacheEntry<>(goodMatchups));
             return Optional.of(goodMatchups);
         } catch (Exception e) {
             logger.error("Failed to fetch good matchups for {}: {}", championName, e.getMessage());
@@ -74,14 +61,8 @@ public class UggDataService {
      */
     @Cacheable(value = "synergy", key = "#championName")
     public Optional<Map<String, Double>> getChampionSynergy(String championName) {
-        CacheEntry<Map<String, Double>> cached = synergyCache.get(championName);
-        if (cached != null && !cached.isExpired(cacheTtlMinutes)) {
-            return Optional.of(cached.data);
-        }
-        
         try {
             Map<String, Double> synergyData = scrapeSynergyDataWithRetry(championName);
-            synergyCache.put(championName, new CacheEntry<>(synergyData));
             return Optional.of(synergyData);
         } catch (Exception e) {
             logger.error("Failed to fetch synergy for {}: {}", championName, e.getMessage());
@@ -92,6 +73,7 @@ public class UggDataService {
     /**
      * Get champion tier list data
      */
+    @Cacheable(value = "tierList", key = "#role")
     public Optional<Map<String, Integer>> getChampionTierList(String role) {
         try {
             Map<String, Integer> tierList = scrapeTierListDataWithRetry(role);
@@ -105,6 +87,7 @@ public class UggDataService {
     /**
      * Get champion win rates
      */
+    @Cacheable(value = "championStats", key = "#role")
     public Optional<Map<String, ChampionStats>> getChampionStats(String role) {
         try {
             Map<String, ChampionStats> stats = scrapeChampionStatsWithRetry(role);
@@ -392,10 +375,9 @@ public class UggDataService {
     /**
      * Clear all caches
      */
-    @CacheEvict(value = {"goodMatchups", "synergy"}, allEntries = true)
+    @CacheEvict(value = {"goodMatchups", "synergy", "tierList", "championStats"}, allEntries = true)
     public void clearCache() {
-        synergyCache.clear();
-        goodMatchupsCache.clear();
+        logger.info("All caches cleared");
     }
     
     /**
@@ -403,25 +385,15 @@ public class UggDataService {
      */
     @CacheEvict(value = {"goodMatchups", "synergy"}, key = "#championName")
     public void clearCacheForChampion(String championName) {
-        synergyCache.remove(championName);
-        goodMatchupsCache.remove(championName);
+        logger.info("Cache cleared for champion: {}", championName);
     }
     
     /**
-     * Cache entry with TTL
+     * Clear cache for specific role
      */
-    private static class CacheEntry<T> {
-        final T data;
-        final Instant timestamp;
-        
-        CacheEntry(T data) {
-            this.data = data;
-            this.timestamp = Instant.now();
-        }
-        
-        boolean isExpired(int ttlMinutes) {
-            return Duration.between(timestamp, Instant.now()).toMinutes() > ttlMinutes;
-        }
+    @CacheEvict(value = {"tierList", "championStats"}, key = "#role")
+    public void clearCacheForRole(String role) {
+        logger.info("Cache cleared for role: {}", role);
     }
     
     /**

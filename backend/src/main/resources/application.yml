@@ -36,7 +36,7 @@ league:
 # Riot API Configuration
 riot:
   api:
-    key: RGAPI-b5d1e8a5-e96b-4312-80bc-62fd31ac8849
+    key: ${RIOT_API_KEY:your-riot-api-key-here}
     base-url: https://americas.api.riotgames.com
     timeout: 10000
     rate-limit:

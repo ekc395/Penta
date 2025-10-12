@@ -17,6 +17,9 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 
+import com.penta.dto.CounterData;
+import com.penta.dto.ChampionStats;
+
 @Service
 public class UggDataService {
     
@@ -41,6 +44,9 @@ public class UggDataService {
     private final Semaphore rateLimiter = new Semaphore(1);
     private volatile Instant lastRequestTime = Instant.now();
     private static final Duration MIN_REQUEST_INTERVAL = Duration.ofMillis(1000);
+
+    // Exponential backoff
+    private static long BASE_DELAY_MS = 1000;
     
     /**
      * Get good matchups for a champion with caching
@@ -132,7 +138,7 @@ public class UggDataService {
                 lastException = e;
                 attempt++;
                 if (attempt < maxRetries) {
-                    long backoffMs = (long) Math.pow(2, attempt) * 1000;
+                    long backoffMs = (long) Math.pow(2, attempt) * BASE_DELAY_MS;
                     Thread.sleep(backoffMs);
                 }
             }
@@ -195,9 +201,7 @@ public class UggDataService {
     private List<CounterData> scrapeWorstPicks(String championName) throws IOException, InterruptedException {
         String url = baseUrl + "/lol/champions/" + championName.toLowerCase() + "/counter";
         Document doc = fetchDocument(url);
-        
-        // Select all champion rows - these are <a> tags with specific classes
-        // The container has class "bg-purple-400" and rows are direct children
+
         Elements championRows = doc.select("a.flex.items-center[class*=p-\\[12px\\]]");
         
         if (championRows.isEmpty()) {
@@ -213,20 +217,16 @@ public class UggDataService {
         
         for (Element row : championRows) {
             try {
-                // Champion name: div with classes "text-white text-[14px] font-bold truncate"
                 Element nameElement = row.selectFirst("div.text-white.font-bold.truncate");
                 if (nameElement == null) continue;
                 String champName = nameElement.text().trim();
                 
-                // Win rate: div with class "text-accent-orange-500" containing "WR"
                 Element wrElement = row.selectFirst("div.text-accent-orange-500");
                 if (wrElement == null) continue;
                 String wrText = wrElement.text().replace("% WR", "").replace("%", "").trim();
                 
-                // Games: div with class "text-accent-gray-100" and "text-[11px]" containing "games"
                 Element gamesElement = row.selectFirst("div.text-accent-gray-100.text-\\[11px\\]");
                 if (gamesElement == null) {
-                    // Fallback: find any element with "games" text
                     Elements possibleGames = row.select("div:containsOwn(games)");
                     gamesElement = possibleGames.isEmpty() ? null : possibleGames.first();
                 }
@@ -234,12 +234,10 @@ public class UggDataService {
                 String gamesText = gamesElement != null ? 
                     gamesElement.text().replace("games", "").replace(",", "").trim() : "0";
                 
-                // Parse the data
                 if (!champName.isEmpty() && !wrText.isEmpty()) {
                     double winRate = Double.parseDouble(wrText);
                     int games = gamesText.isEmpty() ? 0 : Integer.parseInt(gamesText);
                     
-                    // Validation
                     if (winRate >= 0 && winRate <= 100 && games >= 0) {
                         worstPicks.add(new CounterData(champName, winRate, games));
                     }
@@ -265,7 +263,6 @@ public class UggDataService {
         
         Map<String, Double> synergyData = new HashMap<>();
         
-        // Use similar selector pattern as worst picks
         Elements synergyRows = doc.select("a.flex.items-center[class*=p-\\[12px\\]]");
         
         if (synergyRows.isEmpty()) {
@@ -278,7 +275,6 @@ public class UggDataService {
                 if (nameElement == null) continue;
                 String champion = nameElement.text().trim();
                 
-                // Win rate for synergy might have different color class
                 Element wrElement = row.selectFirst("div[class*=text-accent-]:containsOwn(WR)");
                 if (wrElement == null) continue;
                 String wrText = wrElement.text().replace("% WR", "").replace("%", "").trim();
@@ -306,7 +302,6 @@ public class UggDataService {
         
         Map<String, Integer> tierList = new HashMap<>();
         
-        // Similar structure to counter page
         Elements championRows = doc.select("a.flex.items-center[class*=p-\\[12px\\]]");
         
         for (Element row : championRows) {
@@ -315,7 +310,6 @@ public class UggDataService {
                 if (nameElement == null) continue;
                 String champion = nameElement.text().trim();
                 
-                // Look for tier indicator - might be a number or badge
                 Elements tierElements = row.select("div:matches(^[1-5]$)");
                 if (tierElements.isEmpty()) continue;
                 
@@ -394,40 +388,5 @@ public class UggDataService {
     @CacheEvict(value = {"tierList", "championStats"}, key = "#role")
     public void clearCacheForRole(String role) {
         logger.info("Cache cleared for role: {}", role);
-    }
-    
-    /**
-     * Counter data class
-     */
-    public static class CounterData {
-        private final String championName;
-        private final double winRate;
-        private final int gamesPlayed;
-        
-        public CounterData(String championName, double winRate, int gamesPlayed) {
-            this.championName = championName;
-            this.winRate = winRate;
-            this.gamesPlayed = gamesPlayed;
-        }
-        
-        public String getChampionName() { return championName; }
-        public double getWinRate() { return winRate; }
-        public int getGamesPlayed() { return gamesPlayed; }
-        
-        @Override
-        public String toString() {
-            return String.format("%s - WR: %.2f%% (%d games)", 
-                championName, winRate, gamesPlayed);
-        }
-    }
-    
-    public static class ChampionStats {
-        public final double winRate;
-        public final int tier;
-        
-        public ChampionStats(double winRate, int tier) {
-            this.winRate = winRate;
-            this.tier = tier;
-        }
     }
 }

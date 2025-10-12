@@ -5,7 +5,7 @@ import com.penta.dto.ChampionDto;
 import com.penta.model.Champion;
 import com.penta.model.Player;
 import com.penta.model.PlayerChampion;
-import com.penta.service.UggDataService.CounterData;
+import com.penta.dto.CounterData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

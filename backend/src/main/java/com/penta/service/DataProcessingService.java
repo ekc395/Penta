@@ -142,6 +142,8 @@ public class DataProcessingService {
             championStats.setTotalGames(stats.getTotalGames());
             championStats.setWins(stats.getWins());
             championStats.setLosses(stats.getLosses());
+            championStats.setBanRate(0.0);
+            championStats.setPickRate(0.0);
         }
         
         // Recalculate averages

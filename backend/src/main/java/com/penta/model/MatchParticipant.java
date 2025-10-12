@@ -87,10 +87,10 @@ public class MatchParticipant {
     private Integer wardsKilled;
     
     @Column(nullable = false)
-    private Integer firstBloodKill;
+    private boolean firstBloodKill;
     
     @Column(nullable = false)
-    private Integer firstTowerKill;
+    private boolean firstTowerKill;
     
     @Column(nullable = false)
     private Integer totalMinionsKilled;

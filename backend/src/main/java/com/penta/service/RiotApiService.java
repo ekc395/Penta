@@ -3,7 +3,9 @@ package com.penta.service;
 import com.penta.config.RiotApiConfig;
 import com.penta.model.Champion;
 import com.penta.model.Match;
+import com.penta.model.MatchParticipant;
 import com.penta.model.Player;
+import com.penta.repository.ChampionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -11,6 +13,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,23 +26,50 @@ public class RiotApiService {
     @Autowired
     private WebClient riotWebClient;
     
+    @Autowired
+    private ChampionRepository championRepository;
+    
     /**
      * Get player information by summoner name
      */
     public Optional<Player> getPlayerBySummonerName(String summonerName, String region) {
         try {
-            String url = String.format("/lol/summoner/v4/summoners/by-name/%s", summonerName);
+            // Split into gameName and tagLine
+            String[] parts = summonerName.split("#");
+            String gameName = parts[0];
+            String tagLine = parts.length > 1 ? parts[1] : region.toUpperCase();
             
-            RiotSummonerDto summoner = riotWebClient
+            // First, get PUUID from Account API
+            String accountUrl = String.format("https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/%s/%s", gameName, tagLine);
+            
+            WebClient regionalClient = WebClient.builder()
+                    .defaultHeader("X-Riot-Token", riotApiConfig.getRiotApiKey())
+                    .build();
+            
+            RiotAccountDto account = regionalClient
                     .get()
-                    .uri(url)
+                    .uri(accountUrl)
+                    .retrieve()
+                    .bodyToMono(RiotAccountDto.class)
+                    .block();
+            
+            if (account == null) {
+                return Optional.empty();
+            }
+            
+            // Then get summoner data using PUUID
+            String summonerUrl = String.format("https://%s.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/%s", region, account.getPuuid());
+            
+            RiotSummonerDto summoner = regionalClient
+                    .get()
+                    .uri(summonerUrl)
                     .retrieve()
                     .bodyToMono(RiotSummonerDto.class)
                     .block();
             
             if (summoner != null) {
                 Player player = new Player();
-                player.setSummonerName(summonerName);
+                player.setSummonerName(gameName + "#" + tagLine);
                 player.setPuuid(summoner.getPuuid());
                 player.setSummonerId(summoner.getId());
                 player.setRegion(region);
@@ -67,12 +97,12 @@ public class RiotApiService {
         try {
             String url = String.format("/lol/match/v5/matches/by-puuid/%s/ids?start=0&count=%d", puuid, count);
             
+            // Use ParameterizedTypeReference to properly parse JSON array of strings
             List<String> matchIds = riotWebClient
                     .get()
                     .uri(url)
                     .retrieve()
-                    .bodyToFlux(String.class)
-                    .collectList()
+                    .bodyToMono(new org.springframework.core.ParameterizedTypeReference<List<String>>() {})
                     .block();
             
             return matchIds != null ? matchIds : List.of();
@@ -113,9 +143,13 @@ public class RiotApiService {
      */
     public List<RiotChampionMasteryDto> getChampionMastery(String summonerId, String region) {
         try {
-            String url = String.format("/lol/champion-mastery/v4/champion-masteries/by-summoner/%s", summonerId);
+            String url = String.format("https://%s.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/%s", region, summonerId);
             
-            List<RiotChampionMasteryDto> mastery = riotWebClient
+            WebClient regionalClient = WebClient.builder()
+                    .defaultHeader("X-Riot-Token", riotApiConfig.getRiotApiKey())
+                    .build();
+            
+            List<RiotChampionMasteryDto> mastery = regionalClient
                     .get()
                     .uri(url)
                     .retrieve()
@@ -134,9 +168,13 @@ public class RiotApiService {
      */
     public Optional<RiotCurrentGameDto> getCurrentGame(String summonerId, String region) {
         try {
-            String url = String.format("/lol/spectator/v4/active-games/by-summoner/%s", summonerId);
+            String url = String.format("https://%s.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/%s", region, summonerId);
             
-            RiotCurrentGameDto currentGame = riotWebClient
+            WebClient regionalClient = WebClient.builder()
+                    .defaultHeader("X-Riot-Token", riotApiConfig.getRiotApiKey())
+                    .build();
+            
+            RiotCurrentGameDto currentGame = regionalClient
                     .get()
                     .uri(url)
                     .retrieve()
@@ -193,7 +231,67 @@ public class RiotApiService {
         match.setMapId(String.valueOf(matchDto.getInfo().getMapId()));
         match.setGameVersion(matchDto.getInfo().getGameVersion());
         
+        // Convert participants
+        List<MatchParticipant> participants = new ArrayList<>();
+        if (matchDto.getInfo().getParticipants() != null) {
+            for (RiotParticipantDto participantDto : matchDto.getInfo().getParticipants()) {
+                MatchParticipant participant = convertToMatchParticipant(participantDto, match);
+                if (participant != null) {
+                    participants.add(participant);
+                }
+            }
+        }
+        match.setParticipants(participants);
+        
         return match;
+    }
+    
+    private MatchParticipant convertToMatchParticipant(RiotParticipantDto dto, Match match) {
+        // Find champion by ID
+        Optional<Champion> championOpt = championRepository.findByChampionId(dto.getChampionId());
+        if (championOpt.isEmpty()) {
+            return null; // Skip if champion not found
+        }
+        
+        MatchParticipant participant = new MatchParticipant();
+        participant.setMatch(match);
+        participant.setChampion(championOpt.get());
+        participant.setParticipantId(dto.getParticipantId());
+        participant.setSummonerId(dto.getSummonerId());
+        participant.setPuuid(dto.getPuuid());
+        participant.setSummonerName(dto.getSummonerName());
+        participant.setTeamId(dto.getTeamId());
+        participant.setIndividualPosition(dto.getIndividualPosition());
+        participant.setTeamPosition(dto.getTeamPosition());
+        participant.setWon(dto.isWin());
+        participant.setKills(dto.getKills());
+        participant.setDeaths(dto.getDeaths());
+        participant.setAssists(dto.getAssists());
+        participant.setCs(dto.getTotalMinionsKilled() + dto.getNeutralMinionsKilled());
+        participant.setGoldEarned(dto.getGoldEarned());
+        participant.setDamageDealt(dto.getTotalDamageDealtToChampions());
+        participant.setDamageTaken(dto.getTotalDamageTaken());
+        participant.setVisionScore(dto.getVisionScore());
+        participant.setWardsPlaced(dto.getWardsPlaced());
+        participant.setWardsKilled(dto.getWardsKilled());
+        participant.setFirstBloodKill(dto.getFirstBloodKill());
+        participant.setFirstTowerKill(dto.getFirstTowerKill());
+        participant.setTotalMinionsKilled(dto.getTotalMinionsKilled());
+        participant.setNeutralMinionsKilled(dto.getNeutralMinionsKilled());
+        participant.setChampLevel(dto.getChampLevel());
+        participant.setItem0(dto.getItem0());
+        participant.setItem1(dto.getItem1());
+        participant.setItem2(dto.getItem2());
+        participant.setItem3(dto.getItem3());
+        participant.setItem4(dto.getItem4());
+        participant.setItem5(dto.getItem5());
+        participant.setItem6(dto.getItem6());
+        participant.setSummoner1Id(dto.getSummoner1Id());
+        participant.setSummoner2Id(dto.getSummoner2Id());
+        participant.setPrimaryPerk(dto.getPrimaryStyle());
+        participant.setSubPerk(dto.getSubStyle());
+        
+        return participant;
     }
     
     private Champion convertToChampion(RiotChampionDto championDto) {
@@ -269,8 +367,12 @@ public class RiotApiService {
         private int queueId;
         private int mapId;
         private String gameVersion;
+        private List<RiotParticipantDto> participants; // ADD THIS
         
-        // Getters and setters
+        // Add getter/setter
+        public List<RiotParticipantDto> getParticipants() { return participants; }
+        public void setParticipants(List<RiotParticipantDto> participants) { this.participants = participants; }
+    
         public String getGameMode() { return gameMode; }
         public void setGameMode(String gameMode) { this.gameMode = gameMode; }
         public String getGameType() { return gameType; }
@@ -413,5 +515,125 @@ public class RiotApiService {
         
         public String getFull() { return full; }
         public void setFull(String full) { this.full = full; }
+    }
+
+    public static class RiotAccountDto {
+        private String puuid;
+        private String gameName;
+        private String tagLine;
+        
+        public String getPuuid() { return puuid; }
+        public void setPuuid(String puuid) { this.puuid = puuid; }
+        public String getGameName() { return gameName; }
+        public void setGameName(String gameName) { this.gameName = gameName; }
+        public String getTagLine() { return tagLine; }
+        public void setTagLine(String tagLine) { this.tagLine = tagLine; }
+    }
+
+    public static class RiotParticipantDto {
+        private int participantId;
+        private String puuid;
+        private String summonerId;
+        private String summonerName;
+        private int championId;
+        private int teamId;
+        private String individualPosition;
+        private String teamPosition;
+        private boolean win;
+        private int kills;
+        private int deaths;
+        private int assists;
+        private int totalMinionsKilled;
+        private int neutralMinionsKilled;
+        private long goldEarned;
+        private long totalDamageDealtToChampions;
+        private long totalDamageTaken;
+        private long visionScore;
+        private int wardsPlaced;
+        private int wardsKilled;
+        private boolean firstBloodKill;
+        private boolean firstTowerKill;
+        private int champLevel; 
+        private int item0;
+        private int item1;
+        private int item2;
+        private int item3;
+        private int item4;
+        private int item5;
+        private int item6;
+        private int summoner1Id;
+        private int summoner2Id;
+        private int primaryStyle;
+        private int subStyle;
+        
+        // Getters and setters for all fields
+        public int getParticipantId() { return participantId; }
+        public void setParticipantId(int participantId) { this.participantId = participantId; }
+        public String getPuuid() { return puuid; }
+        public void setPuuid(String puuid) { this.puuid = puuid; }
+        public String getSummonerId() { return summonerId; }
+        public void setSummonerId(String summonerId) { this.summonerId = summonerId; }
+        public String getSummonerName() { return summonerName; }
+        public void setSummonerName(String summonerName) { this.summonerName = summonerName; }
+        public int getChampionId() { return championId; }
+        public void setChampionId(int championId) { this.championId = championId; }
+        public int getTeamId() { return teamId; }
+        public void setTeamId(int teamId) { this.teamId = teamId; }
+        public String getIndividualPosition() { return individualPosition; }
+        public void setIndividualPosition(String individualPosition) { this.individualPosition = individualPosition; }
+        public String getTeamPosition() { return teamPosition; }
+        public void setTeamPosition(String teamPosition) { this.teamPosition = teamPosition; }
+        public boolean isWin() { return win; }
+        public void setWin(boolean win) { this.win = win; }
+        public int getKills() { return kills; }
+        public void setKills(int kills) { this.kills = kills; }
+        public int getDeaths() { return deaths; }
+        public void setDeaths(int deaths) { this.deaths = deaths; }
+        public int getAssists() { return assists; }
+        public void setAssists(int assists) { this.assists = assists; }
+        public int getTotalMinionsKilled() { return totalMinionsKilled; }
+        public void setTotalMinionsKilled(int totalMinionsKilled) { this.totalMinionsKilled = totalMinionsKilled; }
+        public int getNeutralMinionsKilled() { return neutralMinionsKilled; }
+        public void setNeutralMinionsKilled(int neutralMinionsKilled) { this.neutralMinionsKilled = neutralMinionsKilled; }
+        public long getGoldEarned() { return goldEarned; }
+        public void setGoldEarned(long goldEarned) { this.goldEarned = goldEarned; }
+        public long getTotalDamageDealtToChampions() { return totalDamageDealtToChampions; }
+        public void setTotalDamageDealtToChampions(long totalDamageDealtToChampions) { this.totalDamageDealtToChampions = totalDamageDealtToChampions; }
+        public long getTotalDamageTaken() { return totalDamageTaken; }
+        public void setTotalDamageTaken(long totalDamageTaken) { this.totalDamageTaken = totalDamageTaken; }
+        public long getVisionScore() { return visionScore; }
+        public void setVisionScore(long visionScore) { this.visionScore = visionScore; }
+        public int getWardsPlaced() { return wardsPlaced; }
+        public void setWardsPlaced(int wardsPlaced) { this.wardsPlaced = wardsPlaced; }
+        public int getWardsKilled() { return wardsKilled; }
+        public void setWardsKilled(int wardsKilled) { this.wardsKilled = wardsKilled; }
+        public boolean getFirstBloodKill() { return firstBloodKill; }
+        public void setFirstBloodKill(boolean firstBloodKill) { this.firstBloodKill = firstBloodKill; }
+        public boolean getFirstTowerKill() { return firstTowerKill; }
+        public void setFirstTowerKill(boolean firstTowerKill) { this.firstTowerKill = firstTowerKill; }
+        public int getChampLevel() { return champLevel; }
+        public void setChampLevel(int champLevel) { this.champLevel = champLevel; }
+        public int getItem0() { return item0; }
+        public void setItem0(int item0) { this.item0 = item0; }
+        public int getItem1() { return item1; }
+        public void setItem1(int item1) { this.item1 = item1; }
+        public int getItem2() { return item2; }
+        public void setItem2(int item2) { this.item2 = item2; }
+        public int getItem3() { return item3; }
+        public void setItem3(int item3) { this.item3 = item3; }
+        public int getItem4() { return item4; }
+        public void setItem4(int item4) { this.item4 = item4; }
+        public int getItem5() { return item5; }
+        public void setItem5(int item5) { this.item5 = item5; }
+        public int getItem6() { return item6; }
+        public void setItem6(int item6) { this.item6 = item6; }
+        public int getSummoner1Id() { return summoner1Id; }
+        public void setSummoner1Id(int summoner1Id) { this.summoner1Id = summoner1Id; }
+        public int getSummoner2Id() { return summoner2Id; }
+        public void setSummoner2Id(int summoner2Id) { this.summoner2Id = summoner2Id; }
+        public int getPrimaryStyle() { return primaryStyle; }
+        public void setPrimaryStyle(int primaryStyle) { this.primaryStyle = primaryStyle; }
+        public int getSubStyle() { return subStyle; }
+        public void setSubStyle(int subStyle) { this.subStyle = subStyle; }
     }
 }

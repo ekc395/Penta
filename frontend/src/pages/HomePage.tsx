@@ -19,6 +19,11 @@ export function HomePage() {
     { value: 'RU', label: 'Russia' },
     { value: 'LAN', label: 'Latin America North' },
     { value: 'LAS', label: 'Latin America South' },
+    { value: 'TW', label: 'Taiwan' },
+    { value: 'ASEAN', label: 'Singapore, Malaysia, Indonesia' },
+    { value: 'TH', label: 'Thailand' },
+    { value: 'PH', label: 'Philippines' },
+    {value: 'MENA', label: 'Middle East' }
   ]
 
   const handleSearch = () => {

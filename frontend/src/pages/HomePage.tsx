@@ -2,30 +2,14 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search, Target, Users, TrendingUp, ArrowRight } from 'lucide-react'
+import { REGIONS } from '@/constants'
+import { Region } from '@/types'
 
 export function HomePage() {
   const [summonerName, setSummonerName] = useState('')
   const [riotTagline, setRiotTagline] = useState('')
-  const [region, setRegion] = useState('NA')
-
-  const regions = [
-    { value: 'NA', label: 'North America' },
-    { value: 'EUW', label: 'Europe West' },
-    { value: 'EUNE', label: 'Europe Nordic & East' },
-    { value: 'KR', label: 'Korea' },
-    { value: 'BR', label: 'Brazil' },
-    { value: 'JP', label: 'Japan' },
-    { value: 'OCE', label: 'Oceania' },
-    { value: 'TR', label: 'Turkey' },
-    { value: 'RU', label: 'Russia' },
-    { value: 'LAN', label: 'Latin America North' },
-    { value: 'LAS', label: 'Latin America South' },
-    { value: 'TW', label: 'Taiwan' },
-    { value: 'ASEAN', label: 'Singapore, Malaysia, Indonesia' },
-    { value: 'TH', label: 'Thailand' },
-    { value: 'PH', label: 'Philippines' },
-    {value: 'MENA', label: 'Middle East' }
-  ]
+  const [region, setRegion] = useState<Region>('NA')
+  const regions = REGIONS
 
   const handleSearch = () => {
     if (summonerName.trim()) {
@@ -105,7 +89,7 @@ export function HomePage() {
                     </label>
                     <select
                       value={region}
-                      onChange={(e) => setRegion(e.target.value)}
+                      onChange={(e) => setRegion(e.target.value as Region)}
                       className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50"
                     >
                       {regions.map((region) => (

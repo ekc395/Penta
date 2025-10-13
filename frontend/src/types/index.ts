@@ -99,5 +99,5 @@ export interface TeamRecommendationRequest {
   preferredRole: string
 }
 
-export type Role = 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT'
-export type Region = 'NA' | 'EUW' | 'EUNE' | 'KR' | 'BR' | 'JP' | 'OCE' | 'TR' | 'RU' | 'LAN' | 'LAS'
+// Import types from constants
+export type { Role, Region } from '@/constants'

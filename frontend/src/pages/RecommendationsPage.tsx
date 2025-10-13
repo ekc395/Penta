@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Search, Target } from 'lucide-react'
 import { championRecommendationApi } from '@/services/api'
 import { Role, Region } from '@/types'
+import { REGIONS, ROLES } from '@/constants'
 import { RecommendationCard } from '@/components/recommendation/RecommendationCard'
 
 export function RecommendationsPage() {
@@ -14,28 +15,8 @@ export function RecommendationsPage() {
   const [teamChampions, setTeamChampions] = useState<string[]>([])
   const [opponentChampions, setOpponentChampions] = useState<string[]>([])
   const [isSearching, setIsSearching] = useState(false)
-
-  const regions: { value: Region; label: string }[] = [
-    { value: 'NA', label: 'North America' },
-    { value: 'EUW', label: 'Europe West' },
-    { value: 'EUNE', label: 'Europe Nordic & East' },
-    { value: 'KR', label: 'Korea' },
-    { value: 'BR', label: 'Brazil' },
-    { value: 'JP', label: 'Japan' },
-    { value: 'OCE', label: 'Oceania' },
-    { value: 'TR', label: 'Turkey' },
-    { value: 'RU', label: 'Russia' },
-    { value: 'LAN', label: 'Latin America North' },
-    { value: 'LAS', label: 'Latin America South' },
-  ]
-
-  const roles: { value: Role; label: string }[] = [
-    { value: 'TOP', label: 'Top Lane' },
-    { value: 'JUNGLE', label: 'Jungle' },
-    { value: 'MID', label: 'Mid Lane' },
-    { value: 'ADC', label: 'Bot Lane' },
-    { value: 'SUPPORT', label: 'Support' },
-  ]
+  const regions = REGIONS
+  const roles = ROLES
 
   const { data: recommendations, isLoading, error } = useQuery(
     ['recommendations', summonerName, riotTagline, region, preferredRole, teamChampions, opponentChampions],

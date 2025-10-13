@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Search, Target, Users, TrendingUp, ArrowRight, Star } from 'lucide-react'
+import { Search, Target, Users, TrendingUp, ArrowRight } from 'lucide-react'
 
 export function HomePage() {
   const [summonerName, setSummonerName] = useState('')
+  const [riotTagline, setRiotTagline] = useState('')
   const [region, setRegion] = useState('NA')
 
   const regions = [
@@ -28,7 +29,10 @@ export function HomePage() {
 
   const handleSearch = () => {
     if (summonerName.trim()) {
-      window.location.href = `/player/${encodeURIComponent(summonerName.trim())}?region=${region}`
+      const fullName = riotTagline.trim() 
+        ? `${summonerName.trim()}#${riotTagline.trim()}`
+        : summonerName.trim()
+      window.location.href = `/player/${encodeURIComponent(fullName)}?region=${region}`
     }
   }
 
@@ -52,44 +56,77 @@ export function HomePage() {
               and opponent matchups using advanced League of Legends data analysis.
             </p>
 
-            {/* Search Form */}
+            {/* Search Form - OP.GG Style */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="max-w-2xl mx-auto"
+              className="max-w-3xl mx-auto"
             >
-              <div className="flex flex-col sm:flex-row gap-4 p-2 bg-white/10 backdrop-blur-sm rounded-2xl">
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    placeholder="Enter your summoner name..."
-                    value={summonerName}
-                    onChange={(e) => setSummonerName(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  />
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+                <div className="flex flex-col lg:flex-row gap-4 items-center">
+                  {/* Username Input */}
+                  <div className="flex-1 w-full">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
+                      Summoner Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter summoner name"
+                      value={summonerName}
+                      onChange={(e) => setSummonerName(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                      className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50"
+                    />
+                  </div>
+                  
+                  {/* Riot Tagline Input */}
+                  <div className="flex-1 w-full">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
+                      Riot Tagline
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/70 text-lg font-bold">#</span>
+                      <input
+                        type="text"
+                        placeholder="TAG"
+                        value={riotTagline}
+                        onChange={(e) => setRiotTagline(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                        className="w-full pl-8 pr-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Region Selector */}
+                  <div className="w-full lg:w-48">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
+                      Region
+                    </label>
+                    <select
+                      value={region}
+                      onChange={(e) => setRegion(e.target.value)}
+                      className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50"
+                    >
+                      {regions.map((region) => (
+                        <option key={region.value} value={region.value} className="text-gray-900">
+                          {region.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* Search Button */}
+                  <div className="w-full lg:w-auto">
+                    <button
+                      onClick={handleSearch}
+                      className="w-full lg:w-auto px-8 py-3 bg-accent-600 hover:bg-accent-700 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Search className="w-5 h-5" />
+                      <span>Search</span>
+                    </button>
+                  </div>
                 </div>
-                <div className="sm:w-48">
-                  <select
-                    value={region}
-                    onChange={(e) => setRegion(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/50"
-                  >
-                    {regions.map((region) => (
-                      <option key={region.value} value={region.value} className="text-gray-900">
-                        {region.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <button
-                  onClick={handleSearch}
-                  className="px-6 py-3 bg-accent-600 hover:bg-accent-700 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2"
-                >
-                  <Search className="w-5 h-5" />
-                  <span>Search</span>
-                </button>
               </div>
             </motion.div>
           </motion.div>

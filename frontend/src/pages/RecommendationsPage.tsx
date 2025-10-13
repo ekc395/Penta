@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { useQuery } from 'react-query'
 import { motion } from 'framer-motion'
-import { Search, Filter, Star, TrendingUp, Users, Target } from 'lucide-react'
+import { Search, Target } from 'lucide-react'
 import { championRecommendationApi } from '@/services/api'
-import { ChampionRecommendation, Role, Region } from '@/types'
-import { ChampionCard } from '@/components/champion/ChampionCard'
+import { Role, Region } from '@/types'
 import { RecommendationCard } from '@/components/recommendation/RecommendationCard'
 
 export function RecommendationsPage() {
   const [summonerName, setSummonerName] = useState('')
+  const [riotTagline, setRiotTagline] = useState('')
   const [region, setRegion] = useState<Region>('NA')
   const [preferredRole, setPreferredRole] = useState<Role>('MID')
   const [teamChampions, setTeamChampions] = useState<string[]>([])
@@ -38,14 +38,19 @@ export function RecommendationsPage() {
   ]
 
   const { data: recommendations, isLoading, error } = useQuery(
-    ['recommendations', summonerName, region, preferredRole, teamChampions, opponentChampions],
-    () => championRecommendationApi.getRecommendations(
-      summonerName,
-      region,
-      teamChampions,
-      opponentChampions,
-      preferredRole
-    ),
+    ['recommendations', summonerName, riotTagline, region, preferredRole, teamChampions, opponentChampions],
+    () => {
+      const fullName = riotTagline.trim() 
+        ? `${summonerName.trim()}#${riotTagline.trim()}`
+        : summonerName.trim()
+      return championRecommendationApi.getRecommendations(
+        fullName,
+        region,
+        teamChampions,
+        opponentChampions,
+        preferredRole
+      )
+    },
     {
       enabled: isSearching && summonerName.trim() !== '',
       retry: 1,
@@ -123,6 +128,23 @@ export function RecommendationsPage() {
                     placeholder="Enter summoner name..."
                     className="input"
                   />
+                </div>
+
+                {/* Riot Tagline */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Riot Tagline
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg font-bold">#</span>
+                    <input
+                      type="text"
+                      placeholder="TAG"
+                      value={riotTagline}
+                      onChange={(e) => setRiotTagline(e.target.value)}
+                      className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    />
+                  </div>
                 </div>
 
                 {/* Region */}
@@ -248,7 +270,7 @@ export function RecommendationsPage() {
             transition={{ duration: 0.8, delay: 0.4 }}
             className="lg:col-span-2"
           >
-            {error && (
+            {!!error && (
               <div className="card bg-red-50 border-red-200">
                 <p className="text-red-700">
                   Error loading recommendations. Please try again.

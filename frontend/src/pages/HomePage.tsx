@@ -4,19 +4,33 @@ import { motion } from 'framer-motion'
 import { Search, Target, Users, TrendingUp, ArrowRight } from 'lucide-react'
 import { REGIONS } from '@/constants'
 import { Region } from '@/types'
+import { summonerApi } from '@/services/api'
 
 export function HomePage() {
   const [summonerName, setSummonerName] = useState('')
   const [riotTagline, setRiotTagline] = useState('')
   const [region, setRegion] = useState<Region>('NA')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const regions = REGIONS
 
-  const handleSearch = () => {
-    if (summonerName.trim()) {
+  const handleSearch = async () => {
+    if (!summonerName.trim()) {
+      setError('Please enter a summoner name')
+      return
+    }
+    setIsLoading(true)
+    setError(null)
+    try {
       const fullName = riotTagline.trim() 
         ? `${summonerName.trim()}#${riotTagline.trim()}`
         : summonerName.trim()
+      await summonerApi.getProfile(fullName, region)
       window.location.href = `/player/${encodeURIComponent(fullName)}?region=${region}`
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to find summoner. Please check the name and region.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -101,16 +115,31 @@ export function HomePage() {
                   </div>
                   
                   {/* Search Button */}
-                  <div className="w-full lg:w-auto">
+                  <div className="w-full lg:w-auto flex flex-col">
+                    <label className="block text-sm font-medium text-white/80 mb-2 invisible">
+                      Search
+                    </label>
                     <button
                       onClick={handleSearch}
-                      className="w-full lg:w-auto px-8 py-3 bg-accent-600 hover:bg-accent-700 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2"
+                      disabled={isLoading}
+                      className="w-full lg:w-auto px-8 py-3 bg-accent-600 hover:bg-accent-700 disabled:bg-accent-400 disabled:cursor-not-allowed rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2"
                     >
                       <Search className="w-5 h-5" />
-                      <span>Search</span>
+                      <span>{isLoading ? 'Searching...' : 'Search'}</span>
                     </button>
                   </div>
                 </div>
+                
+                {/* Error Display */}
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-200 text-sm"
+                  >
+                    {error}
+                  </motion.div>
+                )}
               </div>
             </motion.div>
           </motion.div>

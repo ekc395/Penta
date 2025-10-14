@@ -10,7 +10,7 @@ import { RecommendationCard } from '@/components/recommendation/RecommendationCa
 export function RecommendationsPage() {
   const [summonerName, setSummonerName] = useState('')
   const [riotTagline, setRiotTagline] = useState('')
-  const [region, setRegion] = useState<Region>('NA')
+  const [region, setRegion] = useState<Region>('na1')
   const [preferredRole, setPreferredRole] = useState<Role>('MID')
   const [teamChampions, setTeamChampions] = useState<string[]>([])
   const [opponentChampions, setOpponentChampions] = useState<string[]>([])

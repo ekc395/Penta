@@ -1,9 +1,12 @@
 package com.penta.controller;
 
+import java.util.Optional;
 import com.penta.service.DataCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.penta.dto.SummonerProfileDto;
+import com.penta.service.RiotApiService;
 
 import java.util.List;
 
@@ -14,6 +17,9 @@ public class DataCollectionController {
     
     @Autowired
     private DataCollectionService dataCollectionService;
+
+    @Autowired
+    private RiotApiService riotApiService;;
     
     /**
      * Initialize champion data from Riot API
@@ -104,7 +110,23 @@ public class DataCollectionController {
             return ResponseEntity.internalServerError().build();
         }
     }
-    
+
+    /**
+     * Get summoner profile
+     */
+    @GetMapping("/player/profile")
+    public ResponseEntity<SummonerProfileDto> getSummonerProfile(
+            @RequestParam String summonerName,
+            @RequestParam String region) {
+        try {
+            Optional<SummonerProfileDto> profileOpt = riotApiService.getSummonerProfile(summonerName, region);
+            return profileOpt.map(ResponseEntity::ok)
+                            .orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+        
     /**
      * Start high-elo data collection
      */
@@ -137,4 +159,7 @@ public class DataCollectionController {
         public int getMatchCount() { return matchCount; }
         public void setMatchCount(int matchCount) { this.matchCount = matchCount; }
     }
+
+
+    
 }

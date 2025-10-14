@@ -1,5 +1,6 @@
 package com.penta.service;
 
+import com.penta.dto.SummonerProfileDto;
 import com.penta.config.RiotApiConfig;
 import com.penta.model.Champion;
 import com.penta.model.Match;
@@ -88,6 +89,27 @@ public class RiotApiService {
         }
         
         return Optional.empty();
+    }
+    
+    /**
+     * Get summoner profile (lightweight DTO)
+     */
+    public Optional<SummonerProfileDto> getSummonerProfile(String summonerName, String region) {
+        Optional<Player> playerOpt = getPlayerBySummonerName(summonerName, region);
+        if (playerOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Player player = playerOpt.get();
+        SummonerProfileDto dto = new SummonerProfileDto();
+        dto.setSummonerName(player.getSummonerName());
+        dto.setRegion(player.getRegion());
+        dto.setSummonerId(player.getSummonerId());
+        dto.setPuuid(player.getPuuid());
+        dto.setSummonerLevel(player.getSummonerLevel());
+        dto.setProfileIconUrl(player.getProfileIconUrl());
+
+        return Optional.of(dto);
     }
     
     /**

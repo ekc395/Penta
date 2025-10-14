@@ -9,7 +9,7 @@ import { summonerApi } from '@/services/api'
 export function HomePage() {
   const [summonerName, setSummonerName] = useState('')
   const [riotTagline, setRiotTagline] = useState('')
-  const [region, setRegion] = useState<Region>('NA')
+  const [region, setRegion] = useState<Region>('na1')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const regions = REGIONS

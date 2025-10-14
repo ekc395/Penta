@@ -1,20 +1,20 @@
 export const REGIONS = [
-  { value: 'NA', label: 'North America' },
-  { value: 'EUW', label: 'Europe West' },
-  { value: 'EUNE', label: 'Europe Nordic & East' },
-  { value: 'KR', label: 'Korea' },
-  { value: 'BR', label: 'Brazil' },
-  { value: 'JP', label: 'Japan' },
-  { value: 'OCE', label: 'Oceania' },
-  { value: 'TR', label: 'Turkey' },
-  { value: 'RU', label: 'Russia' },
-  { value: 'LAN', label: 'Latin America North' },
-  { value: 'LAS', label: 'Latin America South' },
-  { value: 'TW', label: 'Taiwan' },
-  { value: 'ASEAN', label: 'Singapore, Malaysia, Indonesia' },
-  { value: 'TH', label: 'Thailand' },
-  { value: 'PH', label: 'Philippines' },
-  { value: 'MENA', label: 'Middle East' }
+  { value: 'na1', label: 'North America' },
+  { value: 'euw1', label: 'Europe West' },
+  { value: 'eune1', label: 'Europe Nordic & East' },
+  { value: 'kr', label: 'Korea' },
+  { value: 'br1', label: 'Brazil' },
+  { value: 'jp1', label: 'Japan' },
+  { value: 'oc1', label: 'Oceania' },
+  { value: 'tr1', label: 'Turkey' },
+  { value: 'ru', label: 'Russia' },
+  { value: 'la1', label: 'Latin America North' },
+  { value: 'la2', label: 'Latin America South' },
+  { value: 'tw2', label: 'Taiwan' },
+  { value: 'sg2', label: 'Singapore, Malaysia, Indonesia' },
+  { value: 'th2', label: 'Thailand' },
+  { value: 'ph2', label: 'Philippines' },
+  { value: 'me1', label: 'Middle East' }
 ] as const
 
 export const ROLES = [
@@ -25,6 +25,5 @@ export const ROLES = [
   { value: 'SUPPORT', label: 'Support' }
 ] as const
 
-// Extract the union types for TypeScript
 export type Region = typeof REGIONS[number]['value']
 export type Role = typeof ROLES[number]['value']

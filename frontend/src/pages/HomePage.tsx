@@ -19,18 +19,29 @@ export function HomePage() {
       setError('Please enter a summoner name')
       return
     }
+    
+    if (isLoading) return; // Add this extra guard
+    
     setIsLoading(true)
     setError(null)
     try {
       const fullName = riotTagline.trim() 
         ? `${summonerName.trim()}#${riotTagline.trim()}`
         : summonerName.trim()
-      await summonerApi.getProfile(fullName, region)
-      window.location.href = `/player/${encodeURIComponent(fullName)}?region=${region}`
+      
+      const response = await summonerApi.getProfile(fullName, region)
+      
+      if (response.status === 'collecting') {
+        setError('Collecting player data... Please wait 15 seconds.')
+        setTimeout(() => {
+          window.location.href = `/player/${encodeURIComponent(fullName)}?region=${region}`
+        }, 15000)
+      } else {
+        window.location.href = `/player/${encodeURIComponent(fullName)}?region=${region}`
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to find summoner. Please check the name and region.')
-    } finally {
-      setIsLoading(false)
+      setError(err.response?.data?.message || 'Failed to find summoner.')
+      setIsLoading(false) // Only re-enable on error
     }
   }
 

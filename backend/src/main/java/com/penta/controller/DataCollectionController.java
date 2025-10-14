@@ -1,6 +1,11 @@
 package com.penta.controller;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import com.penta.model.Player;
+import com.penta.repository.PlayerRepository;
 import com.penta.service.DataCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +24,10 @@ public class DataCollectionController {
     private DataCollectionService dataCollectionService;
 
     @Autowired
-    private RiotApiService riotApiService;;
+    private RiotApiService riotApiService;
+    
+    @Autowired
+    private PlayerRepository playerRepository;
     
     /**
      * Initialize champion data from Riot API
@@ -112,18 +120,42 @@ public class DataCollectionController {
     }
 
     /**
-     * Get summoner profile
+     * Get summoner profile - auto-collects data if needed
      */
     @GetMapping("/player/profile")
-    public ResponseEntity<SummonerProfileDto> getSummonerProfile(
+    public ResponseEntity<?> getSummonerProfile(
             @RequestParam String summonerName,
             @RequestParam String region) {
         try {
+            // Check if player exists
+            Optional<Player> playerOpt = playerRepository.findBySummonerName(summonerName);
+            
+            if (playerOpt.isEmpty()) {
+                // Player doesn't exist - trigger collection
+                dataCollectionService.collectPlayerData(summonerName, region, 20); 
+                
+                Map<String, String> response = new HashMap<>();
+                response.put("status", "collecting");
+                response.put("message", "Player data is being collected. This may take a few moments.");
+                return ResponseEntity.accepted().body(response);
+            }
+            
+            Player player = playerOpt.get();
+            
+            // Check if data is stale (older than 1 hour)
+            if (player.getLastUpdated() == null || 
+                player.getLastUpdated().isBefore(LocalDateTime.now().minusHours(1))) {
+                // Trigger background update
+                dataCollectionService.collectPlayerData(summonerName, region, 20); 
+            }
+            
+            // Return existing profile data
             Optional<SummonerProfileDto> profileOpt = riotApiService.getSummonerProfile(summonerName, region);
             return profileOpt.map(ResponseEntity::ok)
                             .orElseGet(() -> ResponseEntity.notFound().build());
+            
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
         
@@ -151,7 +183,6 @@ public class DataCollectionController {
         private String region;
         private int matchCount;
         
-        // Getters and setters
         public List<String> getSummonerNames() { return summonerNames; }
         public void setSummonerNames(List<String> summonerNames) { this.summonerNames = summonerNames; }
         public String getRegion() { return region; }
@@ -159,7 +190,4 @@ public class DataCollectionController {
         public int getMatchCount() { return matchCount; }
         public void setMatchCount(int matchCount) { this.matchCount = matchCount; }
     }
-
-
-    
 }

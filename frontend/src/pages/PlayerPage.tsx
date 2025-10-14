@@ -3,13 +3,14 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, User, Calendar, Trophy, Target } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { Player, PlayerChampion } from '@/types'
+import { Player } from '@/types'
+import { summonerApi } from '@/services/api'
 import { ChampionCard } from '@/components/champion/ChampionCard'
 
 export function PlayerPage() {
   const { summonerName } = useParams<{ summonerName: string }>()
   const [searchParams] = useSearchParams()
-  const region = searchParams.get('region') || 'NA'
+  const region = searchParams.get('region') || 'na1'
   
   const [player, setPlayer] = useState<Player | null>(null)
   const [loading, setLoading] = useState(true)
@@ -25,23 +26,20 @@ export function PlayerPage() {
     try {
       setLoading(true)
       setError(null)
-      
-      // This would make an API call to get player data
-      // For now, using mock data
-      const mockPlayer: Player = {
-        id: 1,
-        summonerName: name,
-        puuid: 'mock-puuid',
-        summonerId: 'mock-summoner-id',
-        region: region,
-        summonerLevel: 150,
-        profileIconUrl: '',
+      const profile = await summonerApi.getProfile(name, region)
+      const playerFromApi: Player = {
+        id: 0,
+        summonerName: profile.summonerName || name,
+        puuid: profile.puuid || '',
+        summonerId: profile.summonerId || '',
+        region: profile.region || region,
+        summonerLevel: profile.summonerLevel || 0,
+        profileIconUrl: profile.profileIconUrl || '',
         lastUpdated: new Date().toISOString(),
         recentChampions: [],
         recentMatches: []
       }
-      
-      setPlayer(mockPlayer)
+      setPlayer(playerFromApi)
     } catch (err) {
       setError('Failed to load player data')
     } finally {

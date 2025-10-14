@@ -27,6 +27,7 @@ export function PlayerPage() {
       setLoading(true)
       setError(null)
       
+      // Change this constant
       const response = await fetch(`http://localhost:8080/api/players/${encodeURIComponent(name)}?region=${region}`)
       if (!response.ok) {
         throw new Error('Player not found')
@@ -103,7 +104,20 @@ export function PlayerPage() {
           className="card mb-8"
         >
           <div className="flex items-center space-x-6">
-            <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center">
+            {player.profileIconUrl ? (
+              <img
+                src={player.profileIconUrl}
+                alt="Profile Icon"
+                className="w-20 h-20 rounded-full object-cover"
+                onError={(e) => {
+                  console.log('Failed to load icon:', player.profileIconUrl);
+                  // Fallback to default icon on error
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div className={`w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center ${player.profileIconUrl ? 'hidden' : ''}`}>
               <User className="w-10 h-10 text-white" />
             </div>
             <div className="flex-1">

@@ -7,6 +7,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +31,13 @@ public class DataCollectionService {
     
     @Autowired
     private PlayerRepository playerRepository;
-    
+
+    @Autowired
+    private PlayerChampionRepository playerChampionRepository;
+
+    @Autowired
+    private PlayerMatchRepository playerMatchRepository;    
+        
     /**
      * Collect and process data for a specific player
      */
@@ -52,7 +60,12 @@ public class DataCollectionService {
             // Process each match
             for (String matchId : matchIds) {
                 processMatch(matchId, region);
+                // Create PlayerMatch records for this player
+                createPlayerMatchRecords(player, matchId);
             }
+            
+            // Create/update PlayerChampion records
+            updatePlayerChampionStats(player);
             
             // Update player's last updated timestamp
             player.setLastUpdated(LocalDateTime.now());
@@ -63,6 +76,67 @@ public class DataCollectionService {
         }
         
         return CompletableFuture.completedFuture(null);
+    }
+    
+    private void createPlayerMatchRecords(Player player, String matchId) {
+        Optional<Match> matchOpt = matchRepository.findByMatchId(matchId);
+        if (matchOpt.isEmpty()) return;
+        
+        Match match = matchOpt.get();
+        
+        // Find the participant that matches this player
+        match.getParticipants().stream()
+            .filter(p -> p.getPuuid().equals(player.getPuuid()))
+            .findFirst()
+            .ifPresent(participant -> {
+                PlayerMatch pm = new PlayerMatch();
+                pm.setPlayer(player);
+                pm.setChampion(participant.getChampion());
+                pm.setMatchId(matchId);
+                pm.setGameMode(match.getGameMode());
+                pm.setGameType(match.getGameType());
+                pm.setGameStartTime(match.getGameStartTime());
+                pm.setGameDuration(match.getGameDuration());
+                pm.setKills(participant.getKills());
+                pm.setDeaths(participant.getDeaths());
+                pm.setAssists(participant.getAssists());
+                pm.setCs(participant.getCs());
+                pm.setWon(participant.getWon());
+                pm.setLane(participant.getIndividualPosition());
+                pm.setRole(participant.getTeamPosition());
+                pm.setTeamId(participant.getTeamId());
+                
+                playerMatchRepository.save(pm);
+            });
+    }
+
+    private void updatePlayerChampionStats(Player player) {
+        // Get all matches for this player
+        List<PlayerMatch> matches = playerMatchRepository.findByPlayerOrderByGameStartTimeDesc(player);
+        
+        // Group by champion and calculate stats
+        Map<Champion, List<PlayerMatch>> matchesByChampion = matches.stream()
+            .collect(Collectors.groupingBy(PlayerMatch::getChampion));
+        
+        matchesByChampion.forEach((champion, championMatches) -> {
+            PlayerChampion pc = playerChampionRepository
+                .findByPlayerAndChampion(player, champion)
+                .orElse(new PlayerChampion());
+            
+            pc.setPlayer(player);
+            pc.setChampion(champion);
+            pc.setGamesPlayed(championMatches.size());
+            pc.setWins((int) championMatches.stream().filter(PlayerMatch::getWon).count());
+            pc.setLosses(championMatches.size() - pc.getWins());
+            pc.setWinRate(pc.getGamesPlayed() > 0 ? (double) pc.getWins() / pc.getGamesPlayed() * 100 : 0.0);
+            pc.setAverageKills(championMatches.stream().mapToInt(PlayerMatch::getKills).average().orElse(0.0));
+            pc.setAverageDeaths(championMatches.stream().mapToInt(PlayerMatch::getDeaths).average().orElse(0.0));
+            pc.setAverageAssists(championMatches.stream().mapToInt(PlayerMatch::getAssists).average().orElse(0.0));
+            pc.setAverageCs(championMatches.stream().mapToInt(PlayerMatch::getCs).average().orElse(0.0));
+            pc.setLastPlayed(championMatches.get(0).getGameStartTime());
+            
+            playerChampionRepository.save(pc);
+        });
     }
     
     /**
@@ -140,16 +214,8 @@ public class DataCollectionService {
     @Transactional
     public CompletableFuture<Void> collectHighEloData(String region, int playersPerTier, int matchesPerPlayer) {
         try {
-            // This would typically involve:
-            // 1. Getting leaderboard data from Riot API
-            // 2. Collecting match data for top players
-            // 3. Processing the data for statistics
-            
-            // For now, this is a placeholder for the high-elo data collection
             System.out.println("Starting high-elo data collection for region: " + region);
-            
             // TODO: Implement leaderboard scraping and data collection
-            
         } catch (Exception e) {
             throw new RuntimeException("Error collecting high-elo data: " + e.getMessage(), e);
         }
@@ -163,17 +229,14 @@ public class DataCollectionService {
     @Transactional
     public void updateChampionStatistics(String patch, String rank) {
         try {
-            // Get recent matches for the specified patch and rank
-            LocalDateTime since = LocalDateTime.now().minusDays(7); // Last 7 days
+            LocalDateTime since = LocalDateTime.now().minusDays(7);
             List<Match> recentMatches = matchRepository.findRecentMatches(since);
             
-            // Process each match to update statistics
             for (Match match : recentMatches) {
                 if (match.getGameVersion().startsWith(patch)) {
                     dataProcessingService.processMatchData(match);
                 }
             }
-            
         } catch (Exception e) {
             throw new RuntimeException("Error updating champion statistics: " + e.getMessage(), e);
         }
@@ -184,20 +247,11 @@ public class DataCollectionService {
      */
     public DataCollectionStatus getDataCollectionStatus() {
         DataCollectionStatus status = new DataCollectionStatus();
-        
-        // Count total matches processed
         status.setTotalMatches(matchRepository.count());
-        
-        // Count total champions
         status.setTotalChampions(championRepository.count());
-        
-        // Count total players
         status.setTotalPlayers(playerRepository.count());
-        
-        // Get recent activity
         LocalDateTime last24Hours = LocalDateTime.now().minusDays(1);
         status.setMatchesLast24Hours(matchRepository.countMatchesSince(last24Hours));
-        
         return status;
     }
     
@@ -210,7 +264,6 @@ public class DataCollectionService {
         private long totalPlayers;
         private long matchesLast24Hours;
         
-        // Getters and setters
         public long getTotalMatches() { return totalMatches; }
         public void setTotalMatches(long totalMatches) { this.totalMatches = totalMatches; }
         public long getTotalChampions() { return totalChampions; }

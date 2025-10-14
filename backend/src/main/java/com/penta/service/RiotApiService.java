@@ -321,8 +321,8 @@ public class RiotApiService {
         champion.setChampionId(championDto.getKey() != null ? Integer.parseInt(championDto.getKey()) : 0);
         champion.setName(championDto.getName());
         champion.setTitle(championDto.getTitle());
-        champion.setImageUrl(String.format("https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/%s.png", 
-                championDto.getImage().getFull()));
+        champion.setImageUrl(String.format("https://ddragon.leagueoflegends.com/cdn/14.20.1/img/champion/%s.png", 
+                championDto.getId()));
         champion.setSplashUrl(String.format("https://ddragon.leagueoflegends.com/cdn/img/champion/splash/%s_0.jpg", 
                 championDto.getId()));
         champion.setTags(String.join(",", championDto.getTags()));

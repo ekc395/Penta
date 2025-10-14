@@ -146,6 +146,11 @@ export function PlayerPage() {
                   key={playerChampion.id}
                   champion={playerChampion.champion}
                   showStats={true}
+                  playerStats={{
+                    winRate: playerChampion.winRate,
+                    gamesPlayed: playerChampion.gamesPlayed,
+                    totalGames: player.recentMatches?.length || 20
+                  }}
                 />
               ))}
             </div>

@@ -1,4 +1,4 @@
-import { Champion } from '@/types'
+import { Champion, PlayerChampion } from '@/types'
 import { Star, TrendingUp, Users } from 'lucide-react'
 
 interface ChampionCardProps {
@@ -6,9 +6,14 @@ interface ChampionCardProps {
   onClick?: () => void
   selected?: boolean
   showStats?: boolean
+  playerStats?: {
+    winRate: number
+    gamesPlayed: number
+    totalGames: number // Total games in dataset (20)
+  }
 }
 
-export function ChampionCard({ champion, onClick, selected, showStats = false }: ChampionCardProps) {
+export function ChampionCard({ champion, onClick, selected, showStats = false, playerStats }: ChampionCardProps) {
   const getTierClass = (tier: number) => {
     switch (tier) {
       case 5: return 'tier-s'
@@ -30,6 +35,11 @@ export function ChampionCard({ champion, onClick, selected, showStats = false }:
       default: return 'B'
     }
   }
+
+  // Calculate play rate: (games with this champ / total games) * 100
+  const playRate = playerStats 
+    ? ((playerStats.gamesPlayed / playerStats.totalGames) * 100).toFixed(1)
+    : '0.0'
 
   return (
     <div
@@ -84,25 +94,19 @@ export function ChampionCard({ champion, onClick, selected, showStats = false }:
             </span>
           </div>
 
-          {showStats && (
-            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+          {showStats && playerStats && (
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="text-center">
                 <div className="font-semibold text-green-600">
-                  {champion.winRate?.toFixed(1)}%
+                  {playerStats.winRate.toFixed(1)}%
                 </div>
                 <div className="text-gray-500">Win Rate</div>
               </div>
               <div className="text-center">
                 <div className="font-semibold text-blue-600">
-                  {champion.pickRate?.toFixed(1)}%
+                  {playRate}%
                 </div>
-                <div className="text-gray-500">Pick Rate</div>
-              </div>
-              <div className="text-center">
-                <div className="font-semibold text-red-600">
-                  {champion.banRate?.toFixed(1)}%
-                </div>
-                <div className="text-gray-500">Ban Rate</div>
+                <div className="text-gray-500">Play Rate</div>
               </div>
             </div>
           )}

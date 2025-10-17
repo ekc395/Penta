@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.penta.dto.SummonerProfileDto;
 import com.penta.service.RiotApiService;
-
 import java.util.List;
 
 @RestController

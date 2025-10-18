@@ -27,13 +27,20 @@ export function PlayerPage() {
       setLoading(true)
       setError(null)
       
-      // Change this constant
-      const response = await fetch(`http://localhost:8080/api/players/${encodeURIComponent(name)}?region=${region}`)
-      if (!response.ok) {
-        throw new Error('Player not found')
+      const profile = await summonerApi.getProfile(name, region)
+      const playerFromApi: Player = {
+        id: profile.id,
+        summonerName: profile.summonerName,
+        puuid: profile.puuid,
+        summonerId: profile.summonerId,
+        region: profile.region,
+        summonerLevel: profile.summonerLevel,
+        profileIconUrl: profile.profileIconUrl,
+        lastUpdated: profile.lastUpdated,
+        recentChampions: profile.recentChampions,
+        recentMatches: profile.recentMatches,
       }
-      const data = await response.json()
-      setPlayer(data)
+      setPlayer(playerFromApi)
     } catch (err) {
       setError('Failed to load player data')
     } finally {

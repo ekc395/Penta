@@ -40,11 +40,10 @@ api.interceptors.response.use(
 )
 
 export const summonerApi = {
-  /**
-   * Get user riot account information
-   */
   getProfile: async (summonerName: string, region: string) => {
-    const response = await api.get(`/data/player/profile`, { params: { summonerName, region } })
+    const response = await api.get(`/players/${encodeURIComponent(summonerName)}`, { 
+      params: { region } 
+    })
     return response.data
   }
 }

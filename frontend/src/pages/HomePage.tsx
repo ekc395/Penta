@@ -57,8 +57,8 @@ export function HomePage() {
             className="text-center"
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Master Your
-              <span className="block text-accent-300">Champion Pool</span>
+              Win the Game
+              <span className="block text-accent-300">Before it Starts</span>
             </h1>
             <p className="text-xl md:text-2xl text-primary-100 mb-8 max-w-3xl mx-auto">
               Get intelligent champion recommendations based on your playstyle, team composition, 

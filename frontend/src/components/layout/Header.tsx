@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { User, BarChart3 } from 'lucide-react'
+import PentaLogo from '@/assets/PentaLogo.png'
 
 export function Header() {
   const location = useLocation()
@@ -15,7 +16,7 @@ export function Header() {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-              <img src="src/assets/PentaLogo.png" alt="Logo"></img>
+              <img src={PentaLogo} alt="Penta Logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-xl font-bold text-gradient">Penta</span>
           </Link>

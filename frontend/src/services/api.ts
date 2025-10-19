@@ -41,6 +41,13 @@ api.interceptors.response.use(
 
 export const summonerApi = {
   getProfile: async (summonerName: string, region: string) => {
+    const response = await api.get(`/data/player/profile`, { 
+      params: { summonerName, region } 
+    })
+    return response.data
+  },
+  
+  getPlayer: async (summonerName: string, region: string) => {
     const response = await api.get(`/players/${encodeURIComponent(summonerName)}`, { 
       params: { region } 
     })

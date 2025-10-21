@@ -17,9 +17,6 @@ public class DataProcessingService {
     private ChampionRepository championRepository;
     
     @Autowired
-    private MatchRepository matchRepository;
-    
-    @Autowired
     private ChampionStatsRepository championStatsRepository;
     
     @Autowired

@@ -23,7 +23,7 @@ public class ChampionRecommendationService {
     private UggDataService uggDataService;
     
     @Autowired
-    private LeagueApiService leagueApiService;
+    private RiotApiService riotApiService;
     
     /**
      * Get champion recommendations for a player based on team composition and opponent picks
@@ -36,7 +36,7 @@ public class ChampionRecommendationService {
             String preferredRole) {
         
         // Get player data
-        Optional<Player> playerOpt = leagueApiService.getPlayerBySummonerName(summonerName, region);
+        Optional<Player> playerOpt = riotApiService.getPlayerBySummonerName(summonerName, region);
         if (playerOpt.isEmpty()) {
             logger.warn("Player not found: {} in region {}", summonerName, region);
             return Collections.emptyList();

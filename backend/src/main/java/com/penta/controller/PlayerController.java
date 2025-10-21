@@ -134,6 +134,4 @@ public class PlayerController {
         dto.setTeamId(pm.getTeamId());
         return dto;
     }
-
-    
 }

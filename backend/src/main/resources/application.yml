@@ -7,6 +7,9 @@ spring:
   application:
     name: penta-backend
   
+  profiles:
+    active: local
+  
   datasource:
     url: jdbc:h2:file:./data/pentadb
     driver-class-name: org.h2.Driver

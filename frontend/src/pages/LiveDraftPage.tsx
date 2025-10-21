@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 
-const LiveDraftPage: React.FC = () => {
+export function LiveDraftPage() {
   const [summonerName, setSummonerName] = useState('')
   const [region, setRegion] = useState('na1')
   const [loading, setLoading] = useState(false)
@@ -123,5 +123,3 @@ const LiveDraftPage: React.FC = () => {
     </div>
   )
 }
-
-export default LiveDraftPage

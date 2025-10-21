@@ -52,6 +52,13 @@ export const summonerApi = {
       params: { region } 
     })
     return response.data
+  },
+  
+  searchPlayers: async (query: string, region: string, limit: number = 5) => {
+    const response = await api.get('/players/search', {
+      params: { query, region, limit }
+    })
+    return response.data
   }
 }
 

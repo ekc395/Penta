@@ -39,6 +39,9 @@ public class Player {
     @Column
     private LocalDateTime lastUpdated;
     
+    @Column
+    private LocalDateTime lastAccessed;
+    
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<PlayerChampion> recentChampions;
     

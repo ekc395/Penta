@@ -5,6 +5,7 @@ import { Search, Target, Users, TrendingUp, ArrowRight } from 'lucide-react'
 import { REGIONS } from '@/constants'
 import { Region } from '@/types'
 import { summonerApi } from '@/services/api'
+import { PlayerAutofill, PlayerSuggestion } from '@/components/search/PlayerAutofill'
 
 export function HomePage() {
   const [summonerName, setSummonerName] = useState('')
@@ -12,6 +13,7 @@ export function HomePage() {
   const [region, setRegion] = useState<Region>('na1')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showAutofill, setShowAutofill] = useState(false)
   const regions = REGIONS
 
   const handleSearch = async () => {
@@ -24,6 +26,7 @@ export function HomePage() {
     
     setIsLoading(true)
     setError(null)
+    setShowAutofill(false) // Close autofill on search
     try {
       const fullName = riotTagline.trim() 
         ? `${summonerName.trim()}#${riotTagline.trim()}`
@@ -43,6 +46,18 @@ export function HomePage() {
       setError(err.response?.data?.message || 'Failed to find summoner.')
       setIsLoading(false) // Only re-enable on error
     }
+  }
+
+  const handlePlayerSelect = (player: PlayerSuggestion) => {
+    setSummonerName(player.gameName)
+    setRiotTagline(player.tagLine)
+    setShowAutofill(false)
+  }
+
+  const handleSummonerNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSummonerName(value)
+    setShowAutofill(value.length >= 2)
   }
 
   return (
@@ -75,7 +90,7 @@ export function HomePage() {
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
                 <div className="flex flex-col lg:flex-row gap-4 items-center">
                   {/* Username Input */}
-                  <div className="flex-1 w-full">
+                  <div className="flex-1 w-full relative">
                     <label className="block text-sm font-medium text-white/80 mb-2">
                       Summoner Name
                     </label>
@@ -83,9 +98,17 @@ export function HomePage() {
                       type="text"
                       placeholder="Enter summoner name"
                       value={summonerName}
-                      onChange={(e) => setSummonerName(e.target.value)}
+                      onChange={handleSummonerNameChange}
                       onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                      onFocus={() => summonerName.length >= 2 && setShowAutofill(true)}
                       className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50"
+                    />
+                    <PlayerAutofill
+                      query={summonerName}
+                      region={region}
+                      onSelect={handlePlayerSelect}
+                      isVisible={showAutofill}
+                      onClose={() => setShowAutofill(false)}
                     />
                   </div>
                   

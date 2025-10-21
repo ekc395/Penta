@@ -28,4 +28,7 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     
     @Query("SELECT p FROM Player p WHERE p.region = :region AND p.summonerLevel >= :minLevel ORDER BY p.summonerLevel DESC")
     List<Player> findTopPlayersByRegion(@Param("region") String region, @Param("minLevel") Integer minLevel);
+    
+    @Query("SELECT p FROM Player p WHERE p.lastAccessed IS NULL OR p.lastAccessed < :threshold")
+    List<Player> findStalePlayersBefore(@Param("threshold") LocalDateTime threshold);
 }

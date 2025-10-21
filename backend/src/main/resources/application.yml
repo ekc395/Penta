@@ -8,7 +8,7 @@ spring:
     name: penta-backend
   
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:file:./data/pentadb
     driver-class-name: org.h2.Driver
     username: sa
     password: password
@@ -21,7 +21,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -51,7 +51,7 @@ ugg:
 # Firebase Configuration
 firebase:
   project-id: ${FIREBASE_PROJECT_ID:your-project-id}
-  credentials-path: ${FIREBASE_CREDENTIALS_PATH:}
+  credentials-path: ${FIREBASE_CREDENTIALS_PATH:credentials-path-here}
 
 logging:
   level:

@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.penta.model.Player;
 import com.penta.repository.PlayerRepository;
 import com.penta.service.DataCollectionService;
+import com.penta.service.PlayerCleanupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +28,9 @@ public class DataCollectionController {
     
     @Autowired
     private PlayerRepository playerRepository;
+    
+    @Autowired
+    private PlayerCleanupService playerCleanupService;
     
     /**
      * Initialize champion data from Riot API
@@ -188,5 +192,28 @@ public class DataCollectionController {
         public void setRegion(String region) { this.region = region; }
         public int getMatchCount() { return matchCount; }
         public void setMatchCount(int matchCount) { this.matchCount = matchCount; }
+    }
+    
+    /**
+     * Manually cleanup stale players
+     */
+    @PostMapping("/cleanup/players")
+    public ResponseEntity<Map<String, Object>> cleanupStalePlayers(
+            @RequestParam(defaultValue = "7") int daysThreshold) {
+        try {
+            int removedCount = playerCleanupService.cleanupStalePlayersManual(daysThreshold);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("removedCount", removedCount);
+            response.put("message", String.format("Removed %d stale players older than %d days", removedCount, daysThreshold));
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
     }
 }

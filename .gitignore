@@ -153,8 +153,6 @@ build/
 # --- Spring Boot local configuration files ---
 **/application-local.yml
 **/application-local.yaml
-**/application.yml
-**/application.yaml
 
 # --- Firebase additional files ---
 firebase-debug.log
@@ -179,3 +177,8 @@ target/
 *.jar
 *.war
 *.class
+
+# H2 Database files
+backend/data/
+*.mv.db
+*.trace.db

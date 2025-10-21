@@ -3,7 +3,7 @@ import { Header } from '@/components/layout/Header'
 import { HomePage } from '@/pages/HomePage'
 import { RecommendationsPage } from '@/pages/RecommendationsPage'
 import { PlayerPage } from '@/pages/PlayerPage'
-import LiveDraftPage from '@/pages/LiveDraftPage'
+import { LiveDraftPage } from '@/pages/LiveDraftPage'
 import { Footer } from '@/components/layout/Footer'
 
 function App() {

@@ -171,18 +171,20 @@ export function PlayerPage() {
           
           {player.recentChampions && player.recentChampions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {player.recentChampions.map((playerChampion) => (
-                <ChampionCard
-                  key={playerChampion.id}
-                  champion={playerChampion.champion}
-                  showStats={true}
-                  playerStats={{
-                    winRate: playerChampion.winRate,
-                    gamesPlayed: playerChampion.gamesPlayed,
-                    totalGames: player.recentMatches?.length || 20
-                  }}
-                />
-              ))}
+              {player.recentChampions
+                .sort((a, b) => b.gamesPlayed - a.gamesPlayed)
+                .map((playerChampion) => (
+                  <ChampionCard
+                    key={playerChampion.id}
+                    champion={playerChampion.champion}
+                    showStats={true}
+                    playerStats={{
+                      winRate: playerChampion.winRate,
+                      gamesPlayed: playerChampion.gamesPlayed,
+                      totalGames: player.recentMatches?.length || 20
+                    }}
+                  />
+                ))}
             </div>
           ) : (
             <div className="card text-center py-12">

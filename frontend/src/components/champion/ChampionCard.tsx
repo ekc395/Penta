@@ -69,7 +69,7 @@ export function ChampionCard({ champion, onClick, selected, showStats = false, p
         {/* Champion Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 truncate">
+            <h3 className="text-lg font-semibold text-gray-100 truncate">
               {champion.name}
             </h3>
             {champion.tier && (
@@ -79,7 +79,7 @@ export function ChampionCard({ champion, onClick, selected, showStats = false, p
             )}
           </div>
           
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-gray-400 mb-2">
             {champion.title}
           </p>
           
@@ -97,13 +97,13 @@ export function ChampionCard({ champion, onClick, selected, showStats = false, p
           {showStats && playerStats && (
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div className="text-center">
-                <div className="font-semibold text-green-600">
+                <div className="font-semibold text-green-400">
                   {playerStats.winRate.toFixed(1)}%
                 </div>
                 <div className="text-gray-500">Win Rate</div>
               </div>
               <div className="text-center">
-                <div className="font-semibold text-blue-600">
+                <div className="font-semibold text-blue-400">
                   {playRate}%
                 </div>
                 <div className="text-gray-500">Play Rate</div>

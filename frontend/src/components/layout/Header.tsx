@@ -10,7 +10,7 @@ export function Header() {
   }
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="bg-zinc-950 shadow-sm border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -18,7 +18,7 @@ export function Header() {
             <div className="w-8 h-8 rounded-lg flex items-center justify-center">
               <img src={PentaLogo} alt="Penta Logo" className="w-full h-full object-contain" />
             </div>
-            <span className="text-xl font-bold text-gradient">Penta</span>
+            <span className="text-2xl font-bold">Penta</span>
           </Link>
 
           {/* Navigation */}
@@ -27,8 +27,8 @@ export function Header() {
               to="/"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 isActive('/')
-                  ? 'text-primary-600 bg-primary-50'
-                  : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                  ? 'text-primary-400 bg-gray-900'
+                  : 'text-gray-300 hover:text-primary-400 hover:bg-gray-900'
               }`}
             >
               Home
@@ -37,8 +37,8 @@ export function Header() {
               to="/live-draft"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 isActive('/live-draft')
-                  ? 'text-primary-600 bg-primary-50'
-                  : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                  ? 'text-primary-400 bg-gray-900'
+                  : 'text-gray-300 hover:text-primary-400 hover:bg-gray-900'
               }`}
             >
               <Zap className="w-4 h-4 inline mr-1" />
@@ -48,7 +48,7 @@ export function Header() {
 
           {/* User Actions */}
           <div className="flex items-center space-x-4">
-            <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+            <button className="p-2 text-gray-400 hover:text-gray-300 transition-colors">
               <User className="w-5 h-5" />
             </button>
           </div>

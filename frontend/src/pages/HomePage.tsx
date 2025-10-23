@@ -63,7 +63,7 @@ export function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-600 text-white">
+      <section className="bg-zinc-950 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -73,9 +73,9 @@ export function HomePage() {
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Win the Game
-              <span className="block text-accent-300">Before it Starts.</span>
+              <span className="block text-white">Before it Starts.</span>
             </h1>
-            <p className="text-xl md:text-2xl text-primary-100 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
               Get intelligent champion recommendations based on your playstyle, team composition, 
               and opponent matchups using advanced League of Legends data analysis.
             </p>
@@ -87,11 +87,11 @@ export function HomePage() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="max-w-3xl mx-auto"
             >
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+              <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-4">
                 <div className="flex flex-col lg:flex-row gap-4 items-center">
                   {/* Username Input */}
                   <div className="flex-1 w-full relative">
-                    <label className="block text-sm font-medium text-white/80 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
                       Summoner Name
                     </label>
                     <input
@@ -101,7 +101,7 @@ export function HomePage() {
                       onChange={handleSummonerNameChange}
                       onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                       onFocus={() => summonerName.length >= 2 && setShowAutofill(true)}
-                      className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50"
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
                     <PlayerAutofill
                       query={summonerName}
@@ -114,31 +114,31 @@ export function HomePage() {
                   
                   {/* Riot Tagline Input */}
                   <div className="flex-1 w-full">
-                    <label className="block text-sm font-medium text-white/80 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
                       Riot Tagline
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/70 text-lg font-bold">#</span>
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg font-bold">#</span>
                       <input
                         type="text"
                         placeholder="TAG"
                         value={riotTagline}
                         onChange={(e) => setRiotTagline(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                        className="w-full pl-8 pr-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50"
+                        className="w-full pl-8 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
                     </div>
                   </div>
                   
                   {/* Region Selector */}
                   <div className="w-full lg:w-48">
-                    <label className="block text-sm font-medium text-white/80 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
                       Region
                     </label>
                     <select
                       value={region}
                       onChange={(e) => setRegion(e.target.value as Region)}
-                      className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50"
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     >
                       {regions.map((region) => (
                         <option key={region.value} value={region.value} className="text-gray-900">
@@ -150,7 +150,7 @@ export function HomePage() {
                   
                   {/* Search Button */}
                   <div className="w-full lg:w-auto flex flex-col">
-                    <label className="block text-sm font-medium text-white/80 mb-2 invisible">
+                    <label className="block text-sm font-medium text-gray-300 mb-2 invisible">
                       Search
                     </label>
                     <button
@@ -169,7 +169,7 @@ export function HomePage() {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-xl text-red-200 text-sm"
+                    className="mt-4 p-3 bg-red-900/30 border border-red-700 rounded-xl text-red-300 text-sm"
                   >
                     {error}
                   </motion.div>
@@ -181,7 +181,7 @@ export function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-zinc-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -190,10 +190,10 @@ export function HomePage() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-100 mb-4">
               Why Choose Penta?
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
               Our advanced recommendation system analyzes multiple data sources to provide 
               the most accurate champion suggestions for your games.
             </p>
@@ -223,15 +223,15 @@ export function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: index * 0.2 }}
                 viewport={{ once: true }}
-                className="text-center p-8 rounded-2xl hover:shadow-lg transition-shadow"
+                className="text-center p-8 rounded-2xl bg-zinc-800 border border-zinc-700 hover:shadow-lg transition-shadow"
               >
-                <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <feature.icon className="w-8 h-8 text-primary-600" />
+                <div className="w-16 h-16 bg-primary-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <feature.icon className="w-8 h-8 text-primary-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-xl font-semibold text-gray-100 mb-4">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-400">
                   {feature.description}
                 </p>
               </motion.div>
@@ -241,7 +241,7 @@ export function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-24 bg-zinc-900">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -249,10 +249,10 @@ export function HomePage() {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-100 mb-6">
               Ready to Climb the Ranks?
             </h2>
-            <p className="text-xl text-gray-600 mb-8">
+            <p className="text-xl text-gray-400 mb-8">
               Start getting personalized champion recommendations today and improve your gameplay.
             </p>
             <Link

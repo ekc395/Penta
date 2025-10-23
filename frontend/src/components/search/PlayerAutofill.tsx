@@ -82,17 +82,17 @@ export function PlayerAutofill({ query, region, onSelect, isVisible, onClose }: 
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.2 }}
-        className="absolute top-full left-0 right-0 z-50 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 max-h-80 overflow-y-auto"
+        className="absolute top-full left-0 right-0 z-50 mt-1 bg-gray-900 rounded-lg shadow-xl border border-gray-700 max-h-80 overflow-y-auto"
       >
         <div className="py-2">
-          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-4">
+          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-4">
             Summoner Profiles
           </div>
           
           {isLoading ? (
             <div className="flex items-center justify-center py-6">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600"></div>
-              <span className="ml-2 text-sm text-gray-600">Searching...</span>
+              <span className="ml-2 text-sm text-gray-300">Searching...</span>
             </div>
           ) : suggestions.length > 0 ? (
             <div className="space-y-0">
@@ -103,7 +103,7 @@ export function PlayerAutofill({ query, region, onSelect, isVisible, onClose }: 
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
                   onClick={() => handleSelect(player)}
-                  className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0"
+                  className="flex items-center px-4 py-3 hover:bg-gray-800 cursor-pointer transition-colors border-b border-gray-800 last:border-b-0"
                 >
                   {/* Profile Picture */}
                   <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden mr-3">
@@ -117,20 +117,20 @@ export function PlayerAutofill({ query, region, onSelect, isVisible, onClose }: 
                   {/* Player Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                      <span className="font-medium text-gray-900 text-sm truncate">
+                      <span className="font-medium text-gray-100 text-sm truncate">
                         {player.gameName}
                       </span>
-                      <span className="text-gray-500 font-medium text-sm">
+                      <span className="text-gray-400 font-medium text-sm">
                         #{player.tagLine}
                       </span>
                     </div>
                     
                     <div className="flex items-center space-x-3 mt-0.5">
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-gray-400">
                         Level {player.summonerLevel}
                       </span>
                       {player.rank && (
-                        <span className="text-xs font-medium text-gray-700">
+                        <span className="text-xs font-medium text-gray-300">
                           {player.rank.tier} {player.rank.rank} - {player.rank.leaguePoints}LP
                         </span>
                       )}
@@ -140,7 +140,7 @@ export function PlayerAutofill({ query, region, onSelect, isVisible, onClose }: 
               ))}
             </div>
           ) : (
-            <div className="text-center py-6 text-sm text-gray-500">
+            <div className="text-center py-6 text-sm text-gray-400">
               No players found matching "{query}"
             </div>
           )}

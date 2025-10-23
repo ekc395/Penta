@@ -59,10 +59,10 @@ export function PlayerPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading player data...</p>
+          <p className="text-gray-400">Loading player data...</p>
         </div>
       </div>
     )
@@ -70,15 +70,15 @@ export function PlayerPage() {
 
   if (error || !player) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <User className="w-8 h-8 text-red-600" />
+          <div className="w-16 h-16 bg-red-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <User className="w-8 h-8 text-red-400" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-xl font-semibold text-gray-100 mb-2">
             Player Not Found
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-400 mb-4">
             {error || 'The summoner name you entered could not be found.'}
           </p>
           <Link
@@ -94,7 +94,7 @@ export function PlayerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <motion.div
@@ -105,7 +105,7 @@ export function PlayerPage() {
         >
           <Link
             to="/"
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center text-gray-400 hover:text-gray-100 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -137,10 +137,10 @@ export function PlayerPage() {
               <User className="w-10 h-10 text-white" />
             </div>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-gray-100 mb-2">
                 {player.summonerName}
               </h1>
-              <div className="flex items-center space-x-6 text-gray-600">
+              <div className="flex items-center space-x-6 text-gray-400">
                 <div className="flex items-center">
                   <Calendar className="w-4 h-4 mr-2" />
                   Level {player.summonerLevel}
@@ -165,7 +165,7 @@ export function PlayerPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mb-8"
         >
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+          <h2 className="text-2xl font-semibold text-gray-100 mb-6">
             Recent Champions
           </h2>
           
@@ -188,11 +188,11 @@ export function PlayerPage() {
             </div>
           ) : (
             <div className="card text-center py-12">
-              <Target className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <Target className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-100 mb-2">
                 No champion data available
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-400">
                 Champion mastery and recent game data could not be loaded.
               </p>
             </div>
@@ -204,13 +204,13 @@ export function PlayerPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="card bg-gradient-to-r from-primary-50 to-secondary-50 border-primary-200"
+          className="card bg-gradient-to-r from-primary-950 to-secondary-950 border-primary-800"
         >
           <div className="text-center">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <h3 className="text-xl font-semibold text-gray-100 mb-2">
               Ready for champion recommendations?
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-400 mb-6">
               Get personalized champion suggestions based on your playstyle and current game context.
             </p>
             <Link

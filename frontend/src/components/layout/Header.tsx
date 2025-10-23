@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { User, BarChart3, Zap } from 'lucide-react'
+import { User, Zap } from 'lucide-react'
 import PentaLogo from '@/assets/PentaLogo.png'
 
 export function Header() {
@@ -32,17 +32,6 @@ export function Header() {
               }`}
             >
               Home
-            </Link>
-            <Link
-              to="/recommendations"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive('/recommendations')
-                  ? 'text-primary-600 bg-primary-50'
-                  : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4 inline mr-1" />
-              Recommendations
             </Link>
             <Link
               to="/live-draft"

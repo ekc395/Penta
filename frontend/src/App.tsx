@@ -1,7 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { Header } from '@/components/layout/Header'
 import { HomePage } from '@/pages/HomePage'
-import { RecommendationsPage } from '@/pages/RecommendationsPage'
 import { PlayerPage } from '@/pages/PlayerPage'
 import { LiveDraftPage } from '@/pages/LiveDraftPage'
 import { Footer } from '@/components/layout/Footer'
@@ -13,7 +12,6 @@ function App() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/recommendations" element={<RecommendationsPage />} />
           <Route path="/player/:summonerName" element={<PlayerPage />} />
           <Route path="/live-draft" element={<LiveDraftPage />} />
         </Routes>

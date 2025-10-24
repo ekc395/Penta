@@ -59,6 +59,12 @@ export interface PlayerMatch {
   lane: string
   role: string
   teamId: number
+  damageDealt: number
+  damageTaken: number
+  goldEarned: number
+  visionScore: number
+  wardsPlaced: number
+  wardsKilled: number
 }
 
 export interface ChampionRecommendation {

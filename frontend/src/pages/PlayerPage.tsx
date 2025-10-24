@@ -174,16 +174,20 @@ export function PlayerPage() {
               {player.recentChampions
                 .sort((a, b) => b.gamesPlayed - a.gamesPlayed)
                 .map((playerChampion) => (
-                  <ChampionCard
+                  <Link 
                     key={playerChampion.id}
-                    champion={playerChampion.champion}
-                    showStats={true}
-                    playerStats={{
-                      winRate: playerChampion.winRate,
-                      gamesPlayed: playerChampion.gamesPlayed,
-                      totalGames: player.recentMatches?.length || 20
-                    }}
-                  />
+                    to={`/player/${encodeURIComponent(player.summonerName)}/champion?championId=${playerChampion.champion.id}&region=${player.region}`}
+                  >
+                    <ChampionCard
+                      champion={playerChampion.champion}
+                      showStats={true}
+                      playerStats={{
+                        winRate: playerChampion.winRate,
+                        gamesPlayed: playerChampion.gamesPlayed,
+                        totalGames: player.recentMatches?.length || 20
+                      }}
+                    />
+                  </Link>
                 ))}
             </div>
           ) : (

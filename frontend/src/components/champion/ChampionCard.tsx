@@ -95,7 +95,7 @@ export function ChampionCard({ champion, onClick, selected, showStats = false, p
           </div>
 
           {showStats && playerStats && (
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
               <div className="text-center">
                 <div className="font-semibold text-green-400">
                   {playerStats.winRate.toFixed(1)}%
@@ -107,6 +107,12 @@ export function ChampionCard({ champion, onClick, selected, showStats = false, p
                   {playRate}%
                 </div>
                 <div className="text-gray-500">Play Rate</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-gray-300">
+                  {playerStats.gamesPlayed}
+                </div>
+                <div className="text-gray-500">Games</div>
               </div>
             </div>
           )}

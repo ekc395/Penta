@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search, Target, Users, TrendingUp, ArrowRight } from 'lucide-react'
@@ -7,6 +7,7 @@ import { Region } from '@/types'
 import { summonerApi } from '@/services/api'
 import { PlayerAutofill, PlayerSuggestion } from '@/components/search/PlayerAutofill'
 import TextType from '@/components/ui/TextType'
+import LightRays from '@/components/ui/LightRays'
 
 export function HomePage() {
   const [summonerName, setSummonerName] = useState('')
@@ -61,26 +62,109 @@ export function HomePage() {
     setShowAutofill(value.length >= 2)
   }
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const section = document.querySelector('.features-section') as HTMLElement
+      const contentItems = document.querySelectorAll('.feature-content-item') as NodeListOf<HTMLElement>
+      const heading = document.querySelector('.features-heading') as HTMLElement
+      
+      if (!section || !contentItems.length) return
+
+      const sectionTop = section.offsetTop
+      const sectionHeight = section.offsetHeight
+      const scrollY = window.scrollY
+      const viewportHeight = window.innerHeight
+
+      // Calculate scroll progress through the section (0 to 1)
+      const scrollProgress = (scrollY - sectionTop) / (sectionHeight - viewportHeight)
+      const clampedProgress = Math.max(0, Math.min(1, scrollProgress))
+
+      // Animate heading - fade in during first 10% of scroll
+      if (heading) {
+        const headingProgress = Math.min(clampedProgress / 0.1, 1)
+        heading.style.opacity = `${headingProgress}`
+        heading.style.transform = `translateY(${30 * (1 - headingProgress)}px)`
+      }
+
+      const totalItems = contentItems.length
+      const progressPerItem = 1 / totalItems
+
+      contentItems.forEach((item, index) => {
+        const itemStartProgress = index * progressPerItem
+        const itemEndProgress = (index + 1) * progressPerItem
+        
+        let opacity = 0
+        let translateY = 20
+        
+        if (clampedProgress >= itemStartProgress && clampedProgress <= itemEndProgress) {
+          // This item is active
+          const itemProgress = (clampedProgress - itemStartProgress) / progressPerItem
+          
+          // Fade in for first 20%, stay visible for 60%, fade out for last 20%
+          if (itemProgress < 0.2) {
+            opacity = itemProgress / 0.2
+            translateY = 20 * (1 - itemProgress / 0.2)
+          } else if (itemProgress < 0.8) {
+            opacity = 1
+            translateY = 0
+          } else {
+            opacity = (1 - itemProgress) / 0.2
+            translateY = -20 * ((itemProgress - 0.8) / 0.2)
+          }
+        } else if (clampedProgress > itemEndProgress) {
+          // Item has passed
+          opacity = 0
+          translateY = -20
+        }
+        
+        item.style.opacity = `${opacity}`
+        item.style.transform = `translateY(${translateY}px)`
+      })
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll() // Initial call
+
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-zinc-950">
+      {/* Fixed Animated Light Rays Background */}
+      <div className="fixed inset-0 opacity-20 z-0 pointer-events-none">
+        <LightRays
+          raysOrigin="top-center"
+          raysColor="#3b82f6"
+          raysSpeed={0.5}
+          lightSpread={2}
+          rayLength={1.5}
+          fadeDistance={1.2}
+          saturation={0.8}
+          followMouse={true}
+          mouseInfluence={0.15}
+          noiseAmount={0.1}
+          distortion={0.05}
+        />
+      </div>
+
       {/* Hero Section */}
-      <section className="bg-zinc-950 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <section className="bg-transparent text-white min-h-screen flex items-center justify-center relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="flex flex-col items-center"
           >
-            <div className="flex flex-col items-center mb-6">
-              <div className="min-w-[600px] md:min-w-[900px] text-center">
-                <div className="text-4xl md:text-6xl font-bold mb-2">
+            <div className="flex flex-col items-center mb-12">
+              <div className="min-w-[700px] md:min-w-[1000px] text-center">
+                <div className="text-6xl md:text-8xl font-bold mb-4">
                   Win the Game
                 </div>
                 <TextType 
                   text="Before it Starts."
                   as="h2"
-                  className="text-4xl md:text-6xl font-bold text-white"
+                  className="text-6xl md:text-8xl font-bold text-white"
                   typingSpeed={100}
                   initialDelay={500}
                   loop={true}
@@ -89,9 +173,9 @@ export function HomePage() {
                 />
               </div>
             </div>
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto text-center">
+            <p className="text-2xl md:text-3xl text-gray-400 mb-12 max-w-4xl mx-auto text-center">
               Get intelligent champion recommendations based on your playstyle, team composition, 
-              and opponent matchups using advanced League of Legends data analysis.
+              and opponent matchups.
             </p>
 
             {/* Search Form - OP.GG Style */}
@@ -99,13 +183,13 @@ export function HomePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="max-w-3xl mx-auto"
+              className="w-full max-w-5xl mx-auto"
             >
-              <div className="bg-zinc-800 border border-zinc-700 rounded-2xl p-4">
-                <div className="flex flex-col lg:flex-row gap-4 items-center">
+              <div className="bg-zinc-800 border border-zinc-700 rounded-3xl p-6">
+                <div className="flex flex-col lg:flex-row gap-6 items-center">
                   {/* Username Input */}
                   <div className="flex-1 w-full relative">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-base font-medium text-gray-300 mb-3">
                       Summoner Name
                     </label>
                     <input
@@ -115,7 +199,7 @@ export function HomePage() {
                       onChange={handleSummonerNameChange}
                       onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                       onFocus={() => summonerName.length >= 2 && setShowAutofill(true)}
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-5 py-4 text-lg bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     />
                     <PlayerAutofill
                       query={summonerName}
@@ -128,31 +212,31 @@ export function HomePage() {
                   
                   {/* Riot Tagline Input */}
                   <div className="flex-1 w-full">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-base font-medium text-gray-300 mb-3">
                       Riot Tagline
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg font-bold">#</span>
+                      <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl font-bold">#</span>
                       <input
                         type="text"
                         placeholder="TAG"
                         value={riotTagline}
                         onChange={(e) => setRiotTagline(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                        className="w-full pl-8 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className="w-full pl-10 pr-5 py-4 text-lg bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                       />
                     </div>
                   </div>
                   
                   {/* Region Selector */}
-                  <div className="w-full lg:w-48">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <div className="w-full lg:w-56">
+                    <label className="block text-base font-medium text-gray-300 mb-3">
                       Region
                     </label>
                     <select
                       value={region}
                       onChange={(e) => setRegion(e.target.value as Region)}
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      className="w-full px-5 py-4 text-lg bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     >
                       {regions.map((region) => (
                         <option key={region.value} value={region.value} className="text-gray-900">
@@ -164,15 +248,15 @@ export function HomePage() {
                   
                   {/* Search Button */}
                   <div className="w-full lg:w-auto flex flex-col">
-                    <label className="block text-sm font-medium text-gray-300 mb-2 invisible">
+                    <label className="block text-base font-medium text-gray-300 mb-3 invisible">
                       Search
                     </label>
                     <button
                       onClick={handleSearch}
                       disabled={isLoading}
-                      className="w-full lg:w-auto px-8 py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2"
+                      className="w-full lg:w-auto px-10 py-4 text-lg bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2"
                     >
-                      <Search className="w-5 h-5" />
+                      <Search className="w-6 h-6" />
                       <span>{isLoading ? 'Searching...' : 'Search'}</span>
                     </button>
                   </div>
@@ -195,86 +279,117 @@ export function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-zinc-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-100 mb-4">
-              Why Choose Penta?
-            </h2>
-            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Our advanced recommendation system analyzes multiple data sources to provide 
-              the most accurate champion suggestions for your games.
-            </p>
-          </motion.div>
+      <section className="features-section relative bg-transparent" style={{ height: '400vh' }}>
+        {/* Gradient Background Effects */}
+        <div className="sticky top-0 h-screen flex items-center justify-center overflow-hidden">
+          {/* Animated background gradients */}
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Target,
-                title: 'Personalized Recommendations',
-                description: 'Get suggestions based on your champion mastery, win rates, and playstyle preferences.',
-              },
-              {
-                icon: Users,
-                title: 'Team Synergy Analysis',
-                description: 'Analyze how well champions work together in your team composition.',
-              },
-              {
-                icon: TrendingUp,
-                title: 'Meta & Matchup Data',
-                description: 'Stay ahead with real-time meta analysis and champion matchup statistics.',
-              },
-            ].map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                className="text-center p-8 rounded-2xl bg-zinc-800 border border-zinc-700 hover:shadow-lg transition-shadow"
-              >
-                <div className="w-16 h-16 bg-primary-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <feature.icon className="w-8 h-8 text-primary-400" />
+          <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div 
+              className="features-heading text-center mb-12"
+              style={{
+                opacity: 0,
+                willChange: 'opacity, transform',
+                transition: 'opacity 0.3s ease-out, transform 0.3s ease-out',
+              }}
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-100 mb-4">
+                Why Choose Penta?
+              </h2>
+            </div>
+
+            <div className="relative h-[600px] flex items-center justify-center">
+              {[
+                {
+                  icon: Target,
+                  title: 'Personalized Recommendations',
+                  description: 'Get suggestions based on your champion mastery, win rates, and playstyle preferences.',
+                  gradient: 'from-blue-500/10 to-cyan-500/10',
+                  iconBg: 'bg-gradient-to-br from-blue-500 to-cyan-500',
+                  accentColor: 'border-blue-500/30',
+                },
+                {
+                  icon: Users,
+                  title: 'Team Synergy Analysis',
+                  description: 'Analyze how well champions work together in your team composition.',
+                  gradient: 'from-purple-500/10 to-pink-500/10',
+                  iconBg: 'bg-gradient-to-br from-purple-500 to-pink-500',
+                  accentColor: 'border-purple-500/30',
+                },
+                {
+                  icon: TrendingUp,
+                  title: 'Meta & Matchup Data',
+                  description: 'Stay ahead with real-time meta analysis and champion matchup statistics.',
+                  gradient: 'from-orange-500/10 to-red-500/10',
+                  iconBg: 'bg-gradient-to-br from-orange-500 to-red-500',
+                  accentColor: 'border-orange-500/30',
+                },
+              ].map((feature, index) => (
+                <div
+                  key={index}
+                  className="feature-content-item absolute inset-0 flex flex-col items-center justify-center text-center px-6 md:px-12"
+                  style={{
+                    opacity: 0,
+                    willChange: 'opacity, transform',
+                    transition: 'opacity 0.3s ease-out, transform 0.3s ease-out',
+                  }}
+                >
+                  {/* Card with gradient background */}
+                  <div className={`max-w-5xl w-full bg-gradient-to-br ${feature.gradient} backdrop-blur-sm rounded-[48px] border ${feature.accentColor} p-16 md:p-20 shadow-2xl`}>
+                    {/* Icon with gradient and shadow */}
+                    <div className="flex justify-center mb-12">
+                      <div className={`w-32 h-32 md:w-40 md:h-40 ${feature.iconBg} rounded-3xl flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform duration-300`}>
+                        <feature.icon className="w-16 h-16 md:w-20 md:h-20 text-white" strokeWidth={2.5} />
+                      </div>
+                    </div>
+
+                    {/* Title */}
+                    <h3 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-8">
+                      {feature.title}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-2xl md:text-3xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                      {feature.description}
+                    </p>
+
+                    {/* Decorative line */}
+                    <div className="mt-12 flex justify-center">
+                      <div className={`w-32 h-1.5 ${feature.iconBg} rounded-full`}></div>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-100 mb-4">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-400">
-                  {feature.description}
-                </p>
-              </motion.div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-zinc-950">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="min-h-screen bg-transparent flex items-center justify-center relative">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-100 mb-6">
+            <h2 className="text-5xl md:text-7xl font-bold text-gray-100 mb-8">
               Ready to Climb the Ranks?
             </h2>
-            <p className="text-xl text-gray-400 mb-8">
+            <p className="text-2xl md:text-3xl text-gray-400 mb-12 max-w-4xl mx-auto">
               Start getting personalized champion recommendations today and improve your gameplay.
             </p>
             <Link
               to="/recommendations"
-              className="inline-flex items-center space-x-2 px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-colors"
+              className="inline-flex items-center space-x-3 px-12 py-5 text-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-2xl transition-colors shadow-lg hover:shadow-xl"
             >
               <span>Get Started</span>
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-6 h-6" />
             </Link>
           </motion.div>
         </div>

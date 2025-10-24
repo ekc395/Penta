@@ -8,132 +8,199 @@ interface MatchCardProps {
 
 export function MatchCard({ match }: MatchCardProps) {
   const [expanded, setExpanded] = useState(false)
-  const kda = match.deaths > 0 
-    ? ((match.kills + match.assists) / match.deaths).toFixed(2)
-    : 'Perfect'
-  
-  const kdaColor = match.deaths === 0 
-    ? 'text-amber-500' 
-    : parseFloat(kda) >= 3 
-    ? 'text-green-600' 
-    : parseFloat(kda) >= 2 
-    ? 'text-blue-600' 
-    : 'text-gray-600'
+
+  const kdaValue = match.deaths > 0 
+    ? (match.kills + match.assists) / match.deaths 
+    : Infinity
+
+  const kdaDisplay = match.deaths === 0 ? 'Perfect' : kdaValue.toFixed(2)
+
+  const kdaColor =
+    kdaValue === Infinity ? 'text-amber-300' :
+    kdaValue >= 4 ? 'text-emerald-300' :
+    kdaValue >= 3 ? 'text-sky-300' :
+    kdaValue >= 2 ? 'text-cyan-300' :
+    'text-zinc-400'
+
+  const frame = match.won
+    ? 'from-sky-500/15 border-sky-400/40'
+    : 'from-rose-500/15 border-rose-400/40'
 
   return (
-    <div className={`card overflow-hidden ${match.won ? 'bg-blue-50/50 border-l-4 border-blue-500' : 'bg-red-50/50 border-l-4 border-red-500'}`}>
-      {/* Main Match Info */}
+    <div
+      className={`
+        overflow-hidden rounded-xl border
+        bg-zinc-900/60 backdrop-blur
+        bg-gradient-to-r ${frame}
+        shadow-[0_0_0_1px_rgba(255,255,255,0.03)]
+        hover:shadow-lg transition-shadow
+      `}
+    >
+      {/* Main Info */}
       <div className="p-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           {/* Champion Image */}
-          <div className="relative">
-            <img 
-              src={match.champion.imageUrl} 
+          <div className="relative flex-shrink-0">
+            <img
+              src={match.champion.imageUrl}
               alt={match.champion.name}
-              className="w-16 h-16 rounded-lg"
+              className={`w-16 h-16 rounded-lg ring-2 ${
+                match.won ? 'ring-sky-400/40' : 'ring-rose-400/40'
+              }`}
             />
-            <div className="absolute -bottom-1 -right-1 bg-gray-900 text-white text-xs px-1.5 py-0.5 rounded">
-              {match.champion.name}
-            </div>
           </div>
 
-          {/* Game Type & Result */}
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <span className={`font-bold text-sm ${match.won ? 'text-blue-600' : 'text-red-600'}`}>
-                {match.won ? 'VICTORY' : 'DEFEAT'}
+          {/* Game Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-1">
+              <span
+                className={`font-semibold text-sm uppercase tracking-wide ${
+                  match.won ? 'text-sky-300' : 'text-rose-300'
+                }`}
+              >
+                {match.won ? 'Victory' : 'Defeat'}
               </span>
-              <span className="text-gray-400">•</span>
-              <span className="text-sm text-gray-600">{match.gameMode}</span>
+              <span className="text-zinc-600/60">•</span>
+              <span className="text-sm text-zinc-300 uppercase">
+                {match.gameMode}
+              </span>
               {match.lane && match.lane !== 'NONE' && (
                 <>
-                  <span className="text-gray-400">•</span>
-                  <span className="text-sm text-gray-600">{match.lane}</span>
+                  <span className="text-zinc-600/60">•</span>
+                  <span className="text-sm text-zinc-300 uppercase">
+                    {match.lane}
+                  </span>
                 </>
               )}
             </div>
-            <div className="text-xs text-gray-500">
-              {new Date(match.gameStartTime).toLocaleDateString()} • {Math.floor(match.gameDuration / 60)}m {match.gameDuration % 60}s
+            <div className="text-sm text-zinc-400">
+              {new Date(match.gameStartTime).toLocaleDateString()} •{' '}
+              {Math.floor(match.gameDuration / 60)}m {match.gameDuration % 60}s
             </div>
           </div>
 
-          {/* KDA Stats */}
-          <div className="text-center px-4">
-            <div className="text-lg font-bold mb-1">
+          {/* KDA */}
+          <div className="text-right px-6 flex-shrink-0 border-l border-zinc-800">
+            <div className="text-xl font-bold text-white mb-1">
               <span>{match.kills}</span>
-              <span className="text-gray-400 mx-1">/</span>
-              <span className="text-red-500">{match.deaths}</span>
-              <span className="text-gray-400 mx-1">/</span>
+              <span className="text-zinc-500 mx-1">/</span>
+              <span className="text-rose-300">{match.deaths}</span>
+              <span className="text-zinc-500 mx-1">/</span>
               <span>{match.assists}</span>
             </div>
             <div className={`text-sm font-semibold ${kdaColor}`}>
-              {kda} KDA
+              {kdaDisplay} KDA
             </div>
           </div>
 
-          {/* CS & Vision */}
-          <div className="text-center px-4 border-l border-gray-200">
-            <div className="text-sm font-semibold text-gray-900">{match.cs} CS</div>
-            <div className="text-xs text-gray-500">
-              {(match.cs / (match.gameDuration / 60)).toFixed(1)} / min
+          {/* CS */}
+          <div className="text-right px-6 border-l border-zinc-800 flex-shrink-0">
+            <div className="text-xl font-bold text-white">{match.cs}</div>
+            <div className="text-sm text-zinc-400">
+              {(match.cs / (match.gameDuration / 60)).toFixed(1)} CS/m
             </div>
           </div>
 
           {/* Expand Button */}
           <button
             onClick={() => setExpanded(!expanded)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-zinc-800/60 rounded-lg transition-colors flex-shrink-0"
           >
-            {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            {expanded ? (
+              <ChevronUp className="w-5 h-5 text-zinc-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-zinc-400" />
+            )}
           </button>
         </div>
       </div>
 
-      {/* Expanded Details */}
+      {/* Expanded Section */}
       {expanded && (
-        <div className="border-t border-gray-200 bg-white p-4">
-          <div className="grid grid-cols-3 gap-4">
-            {/* Damage Stats */}
-            <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Damage</h4>
-              <div className="space-y-1 text-sm">
+        <div className="border-t border-zinc-800 bg-zinc-950/60 p-6">
+          <div className="grid grid-cols-4 gap-6 mb-6">
+            {/* Damage */}
+            <div className="bg-zinc-900/60 rounded-lg p-4 ring-1 ring-inset ring-white/5">
+              <h4 className="text-sm font-semibold text-zinc-300 mb-3">
+                Damage
+              </h4>
+              <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Damage Dealt:</span>
-                  <span className="font-medium">{match.damageDealt?.toLocaleString() || 0}</span>
+                  <span className="text-zinc-400">Dealt:</span>
+                  <span className="font-medium text-rose-300">
+                    {match.damageDealt?.toLocaleString() ?? 0}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Damage Taken:</span>
-                  <span className="font-medium">{match.damageTaken?.toLocaleString() || 0}</span>
+                  <span className="text-zinc-400">Taken:</span>
+                  <span className="font-medium text-sky-300">
+                    {match.damageTaken?.toLocaleString() ?? 0}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Gold & CS */}
-            <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Gold & Farm</h4>
-              <div className="space-y-1 text-sm">
+            {/* Gold & Farm */}
+            <div className="bg-zinc-900/60 rounded-lg p-4 ring-1 ring-inset ring-white/5">
+              <h4 className="text-sm font-semibold text-zinc-300 mb-3">
+                Gold & Farm
+              </h4>
+              <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Gold:</span>
-                  <span className="font-medium">{match.goldEarned?.toLocaleString() || 0}</span>
+                  <span className="text-zinc-400">Gold:</span>
+                  <span className="font-medium text-amber-300">
+                    {match.goldEarned?.toLocaleString() ?? 0}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">CS:</span>
-                  <span className="font-medium">{match.cs}</span>
+                  <span className="text-zinc-400">CS:</span>
+                  <span className="font-medium text-white">{match.cs}</span>
                 </div>
               </div>
             </div>
 
             {/* Vision */}
-            <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">Vision</h4>
-              <div className="space-y-1 text-sm">
+            <div className="bg-zinc-900/60 rounded-lg p-4 ring-1 ring-inset ring-white/5">
+              <h4 className="text-sm font-semibold text-zinc-300 mb-3">
+                Vision
+              </h4>
+              <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Vision Score:</span>
-                  <span className="font-medium">{match.visionScore || 0}</span>
+                  <span className="text-zinc-400">Score:</span>
+                  <span className="font-medium text-purple-300">
+                    {match.visionScore ?? 0}
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Wards:</span>
-                  <span className="font-medium">{match.wardsPlaced || 0} / {match.wardsKilled || 0}</span>
+                  <span className="text-zinc-400">Wards:</span>
+                  <span className="font-medium text-white">
+                    {match.wardsPlaced ?? 0} / {match.wardsKilled ?? 0}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Performance */}
+            <div className="bg-zinc-900/60 rounded-lg p-4 ring-1 ring-inset ring-white/5">
+              <h4 className="text-sm font-semibold text-zinc-300 mb-3">
+                Performance
+              </h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">KDA:</span>
+                  <span className={`font-medium ${kdaColor}`}>
+                    {kdaDisplay}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Result:</span>
+                  <span
+                    className={`font-medium ${
+                      match.won ? 'text-sky-300' : 'text-rose-300'
+                    }`}
+                  >
+                    {match.won ? 'Win' : 'Loss'}
+                  </span>
                 </div>
               </div>
             </div>

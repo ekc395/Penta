@@ -88,7 +88,7 @@ export function ChampionDetailPage() {
   const avgCS = (totalCS / matches.length).toFixed(1)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-zinc-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <motion.div
@@ -98,7 +98,7 @@ export function ChampionDetailPage() {
         >
           <Link
             to={`/player/${summonerName}?region=${region}`}
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center text-gray-400 hover:text-gray-100 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Profile
@@ -140,27 +140,27 @@ export function ChampionDetailPage() {
           className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
         >
           <div className="card text-center">
-            <div className="text-3xl font-bold text-primary-600">{matches.length}</div>
-            <div className="text-sm text-gray-600 mt-1">Games Played</div>
-          </div>
+            <div className="text-3xl font-bold text-primary-500">{matches.length}</div>
+            <div className="text-sm text-gray-400 mt-1">Games Played</div>
+          </div>    
           <div className="card text-center">
             <div className={`text-3xl font-bold ${winRate >= 50 ? 'text-green-600' : 'text-red-600'}`}>
               {winRate.toFixed(1)}%
             </div>
-            <div className="text-sm text-gray-600 mt-1">Win Rate</div>
-            <div className="text-xs text-gray-500 mt-1">{wins}W {losses}L</div>
+            <div className="text-sm text-gray-400 mt-1">Win Rate</div>
+            <div className="text-xs text-gray-400 mt-1">{wins}W {losses}L</div>
           </div>
           <div className="card text-center">
             <div className="text-3xl font-bold text-blue-600">{avgKDA}</div>
-            <div className="text-sm text-gray-600 mt-1">Average KDA</div>
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-sm text-gray-400 mt-1">Average KDA</div>
+            <div className="text-xs text-gray-400 mt-1">
               {avgKills} / {avgDeaths} / {avgAssists}
             </div>
           </div>
           <div className="card text-center">
             <div className="text-3xl font-bold text-yellow-600">{avgCS}</div>
-            <div className="text-sm text-gray-600 mt-1">Avg CS</div>
-            <div className="text-xs text-gray-500 mt-1">per game</div>
+            <div className="text-sm text-gray-400 mt-1">Avg CS</div>
+            <div className="text-xs text-gray-400 mt-1">per game</div>
           </div>
         </motion.div>
 
@@ -170,7 +170,7 @@ export function ChampionDetailPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+          <h2 className="text-2xl font-semibold text-gray-400 mb-6">
             Match History with {champion.name}
           </h2>
           <div className="space-y-3">

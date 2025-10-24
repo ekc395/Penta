@@ -6,6 +6,7 @@ import { REGIONS } from '@/constants'
 import { Region } from '@/types'
 import { summonerApi } from '@/services/api'
 import { PlayerAutofill, PlayerSuggestion } from '@/components/search/PlayerAutofill'
+import TextType from '@/components/ui/TextType'
 
 export function HomePage() {
   const [summonerName, setSummonerName] = useState('')
@@ -69,13 +70,26 @@ export function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center"
+            className="flex flex-col items-center"
           >
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Win the Game
-              <span className="block text-white">Before it Starts.</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+            <div className="flex flex-col items-center mb-6">
+              <div className="min-w-[600px] md:min-w-[900px] text-center">
+                <div className="text-4xl md:text-6xl font-bold mb-2">
+                  Win the Game
+                </div>
+                <TextType 
+                  text="Before it Starts."
+                  as="h2"
+                  className="text-4xl md:text-6xl font-bold text-white"
+                  typingSpeed={100}
+                  initialDelay={500}
+                  loop={true}
+                  showCursor={true}
+                  cursorClassName="text-white"
+                />
+              </div>
+            </div>
+            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto text-center">
               Get intelligent champion recommendations based on your playstyle, team composition, 
               and opponent matchups using advanced League of Legends data analysis.
             </p>
@@ -156,7 +170,7 @@ export function HomePage() {
                     <button
                       onClick={handleSearch}
                       disabled={isLoading}
-                      className="w-full lg:w-auto px-8 py-3 bg-accent-600 hover:bg-accent-700 disabled:bg-accent-400 disabled:cursor-not-allowed rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2"
+                      className="w-full lg:w-auto px-8 py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2"
                     >
                       <Search className="w-5 h-5" />
                       <span>{isLoading ? 'Searching...' : 'Search'}</span>
@@ -241,7 +255,7 @@ export function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-zinc-900">
+      <section className="py-24 bg-zinc-950">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

@@ -43,6 +43,33 @@ export interface PlayerChampion {
   masteryPoints: number
 }
 
+// Add the new interface here:
+export interface MatchParticipant {
+  summonerName: string
+  champion: Champion
+  teamId: number
+  won: boolean
+  kills: number
+  deaths: number
+  assists: number
+  cs: number
+  lane: string
+  damageDealt: number
+  damageTaken: number
+  goldEarned: number
+  visionScore: number
+  wardsPlaced: number
+  wardsKilled: number
+  champLevel: number
+  item0: number
+  item1: number
+  item2: number
+  item3: number
+  item4: number
+  item5: number
+  item6: number
+}
+
 export interface PlayerMatch {
   id: number
   champion: Champion
@@ -65,8 +92,10 @@ export interface PlayerMatch {
   visionScore: number
   wardsPlaced: number
   wardsKilled: number
+  participants?: MatchParticipant[]  // Add this line
 }
 
+// Rest of your interfaces...
 export interface ChampionRecommendation {
   champion: Champion
   recommendationScore: number
@@ -105,5 +134,4 @@ export interface TeamRecommendationRequest {
   preferredRole: string
 }
 
-// Import types from constants
 export type { Role, Region } from '@/constants'

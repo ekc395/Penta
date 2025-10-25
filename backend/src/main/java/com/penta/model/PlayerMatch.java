@@ -25,6 +25,11 @@ public class PlayerMatch {
     @JoinColumn(name = "champion_id", nullable = false)
     private Champion champion;
     
+    // Add this - reference to the full Match with all participants
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "match_id_fk", referencedColumnName = "matchId")
+    private Match match;
+    
     @Column(nullable = false)
     private String matchId;
     
@@ -63,4 +68,23 @@ public class PlayerMatch {
     
     @Column
     private Integer teamId;
+    
+    // Add these fields:
+    @Column
+    private Long damageDealt;
+    
+    @Column
+    private Long damageTaken;
+    
+    @Column
+    private Long goldEarned;
+    
+    @Column
+    private Long visionScore;
+    
+    @Column
+    private Integer wardsPlaced;
+    
+    @Column
+    private Integer wardsKilled;
 }

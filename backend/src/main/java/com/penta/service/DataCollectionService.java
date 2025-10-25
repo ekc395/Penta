@@ -92,6 +92,7 @@ public class DataCollectionService {
                 PlayerMatch pm = new PlayerMatch();
                 pm.setPlayer(player);
                 pm.setChampion(participant.getChampion());
+                pm.setMatch(match);  // ADD THIS - links to full match with all participants
                 pm.setMatchId(matchId);
                 pm.setGameMode(match.getGameMode());
                 pm.setGameType(match.getGameType());
@@ -105,11 +106,17 @@ public class DataCollectionService {
                 pm.setLane(participant.getIndividualPosition());
                 pm.setRole(participant.getTeamPosition());
                 pm.setTeamId(participant.getTeamId());
+                // ADD THESE - damage, gold, vision stats
+                pm.setDamageDealt(participant.getDamageDealt());
+                pm.setDamageTaken(participant.getDamageTaken());
+                pm.setGoldEarned(participant.getGoldEarned());
+                pm.setVisionScore(participant.getVisionScore());
+                pm.setWardsPlaced(participant.getWardsPlaced());
+                pm.setWardsKilled(participant.getWardsKilled());
                 
                 playerMatchRepository.save(pm);
             });
     }
-
     private void updatePlayerChampionStats(Player player) {
         // Get all matches for this player
         List<PlayerMatch> matches = playerMatchRepository.findByPlayerOrderByGameStartTimeDesc(player);

@@ -6,6 +6,8 @@ import com.penta.dto.ChampionDto;
 import com.penta.dto.PlayerChampionDto;
 import com.penta.dto.PlayerMatchDto;
 import com.penta.dto.PlayerSearchDto;
+import com.penta.dto.MatchParticipantDto;
+import com.penta.model.MatchParticipant;
 import com.penta.model.Player;
 import com.penta.model.PlayerChampion;
 import com.penta.model.PlayerMatch;
@@ -203,7 +205,7 @@ public class PlayerController {
         PlayerMatchDto dto = new PlayerMatchDto();
         dto.setId(pm.getId());
         dto.setMatchId(pm.getMatchId());
-        dto.setChampion(convertToChampionDto(pm.getChampion())); // Changed this
+        dto.setChampion(convertToChampionDto(pm.getChampion()));
         dto.setGameMode(pm.getGameMode());
         dto.setGameType(pm.getGameType());
         dto.setGameStartTime(pm.getGameStartTime());
@@ -216,6 +218,49 @@ public class PlayerController {
         dto.setLane(pm.getLane());
         dto.setRole(pm.getRole());
         dto.setTeamId(pm.getTeamId());
+        dto.setDamageDealt(pm.getDamageDealt());
+        dto.setDamageTaken(pm.getDamageTaken());
+        dto.setGoldEarned(pm.getGoldEarned());
+        dto.setVisionScore(pm.getVisionScore());
+        dto.setWardsPlaced(pm.getWardsPlaced());
+        dto.setWardsKilled(pm.getWardsKilled());
+        
+        if (pm.getMatch() != null && pm.getMatch().getParticipants() != null) {
+            List<MatchParticipantDto> participantDtos = pm.getMatch().getParticipants()
+                .stream()
+                .map(this::convertToMatchParticipantDto)
+                .collect(Collectors.toList());
+            dto.setParticipants(participantDtos);
+        }
+        
+        return dto;
+    }
+
+    private MatchParticipantDto convertToMatchParticipantDto(MatchParticipant mp) {
+        MatchParticipantDto dto = new MatchParticipantDto();
+        dto.setSummonerName(mp.getSummonerName());
+        dto.setChampion(convertToChampionDto(mp.getChampion()));
+        dto.setTeamId(mp.getTeamId());
+        dto.setWon(mp.getWon());
+        dto.setKills(mp.getKills());
+        dto.setDeaths(mp.getDeaths());
+        dto.setAssists(mp.getAssists());
+        dto.setCs(mp.getCs());
+        dto.setLane(mp.getIndividualPosition());
+        dto.setDamageDealt(mp.getDamageDealt());
+        dto.setDamageTaken(mp.getDamageTaken());
+        dto.setGoldEarned(mp.getGoldEarned());
+        dto.setVisionScore(mp.getVisionScore());
+        dto.setWardsPlaced(mp.getWardsPlaced());
+        dto.setWardsKilled(mp.getWardsKilled());
+        dto.setChampLevel(mp.getChampLevel());
+        dto.setItem0(mp.getItem0());
+        dto.setItem1(mp.getItem1());
+        dto.setItem2(mp.getItem2());
+        dto.setItem3(mp.getItem3());
+        dto.setItem4(mp.getItem4());
+        dto.setItem5(mp.getItem5());
+        dto.setItem6(mp.getItem6());
         return dto;
     }
     

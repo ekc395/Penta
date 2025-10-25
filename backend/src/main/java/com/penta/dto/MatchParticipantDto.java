@@ -4,33 +4,31 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlayerMatchDto {
-    private Long id;
+public class MatchParticipantDto {
+    private String summonerName;
     private ChampionDto champion;
-    private String matchId;
-    private String gameMode;
-    private String gameType;
-    private LocalDateTime gameStartTime;
-    private Long gameDuration;
+    private Integer teamId;
     private Boolean won;
     private Integer kills;
     private Integer deaths;
     private Integer assists;
     private Integer cs;
     private String lane;
-    private String role;
-    private Integer teamId;
     private Long damageDealt;
     private Long damageTaken;
     private Long goldEarned;
     private Long visionScore;
     private Integer wardsPlaced;
     private Integer wardsKilled;
-    private List<MatchParticipantDto> participants;
+    private Integer champLevel;
+    private Integer item0;
+    private Integer item1;
+    private Integer item2;
+    private Integer item3;
+    private Integer item4;
+    private Integer item5;
+    private Integer item6;
 }

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search, Target, Users, TrendingUp, ArrowRight } from 'lucide-react'
 import { REGIONS } from '@/constants'
@@ -384,13 +383,15 @@ export function HomePage() {
             <p className="text-2xl md:text-3xl text-gray-400 mb-12 max-w-4xl mx-auto">
               Start getting personalized champion recommendations today and improve your gameplay.
             </p>
-            <Link
-              to="/recommendations"
+            <button
+              onClick={() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className="inline-flex items-center space-x-3 px-12 py-5 text-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-2xl transition-colors shadow-lg hover:shadow-xl"
             >
               <span>Get Started</span>
               <ArrowRight className="w-6 h-6" />
-            </Link>
+            </button>
           </motion.div>
         </div>
       </section>

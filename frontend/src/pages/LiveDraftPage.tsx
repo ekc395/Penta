@@ -32,7 +32,7 @@ export function LiveDraftPage() {
         <h1 className="text-3xl font-bold mb-8 text-center">Live Draft Analysis</h1>
         
         {/* Input Section */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-8">
+        <div className="bg-zinc-800 rounded-lg p-6 mb-8">
           <div className="flex gap-4 items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium mb-2">Summoner Name</label>
@@ -41,7 +41,7 @@ export function LiveDraftPage() {
                 value={summonerName}
                 onChange={(e) => setSummonerName(e.target.value)}
                 placeholder="Enter summoner name (e.g., PlayerName#TAG)"
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="w-32">
@@ -49,7 +49,7 @@ export function LiveDraftPage() {
               <select
                 value={region}
                 onChange={(e) => setRegion(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="na1">NA</option>
                 <option value="euw1">EUW</option>
@@ -68,7 +68,7 @@ export function LiveDraftPage() {
               <button
                 onClick={handleAnalyzeLiveDraft}
                 disabled={loading}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-md transition-colors font-medium"
+                className="px-6 py-2 bg-green-700 hover:bg-blue-700 disabled:bg-gray-600 rounded-md transition-colors font-medium"
               >
                 {loading ? 'Analyzing...' : 'Analyze Live Draft'}
               </button>
@@ -83,7 +83,7 @@ export function LiveDraftPage() {
         )}
 
         {/* Coming Soon Section */}
-        <div className="bg-gray-800 rounded-lg p-8 text-center">
+        <div className="bg-zinc-800 rounded-lg p-8 text-center">
           <div className="mb-6">
             <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,21 +97,21 @@ export function LiveDraftPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-            <div className="bg-gray-700 rounded-lg p-4">
+            <div className="bg-gray-800 rounded-lg p-4">
               <h3 className="font-semibold mb-2 text-blue-400">Team Analysis</h3>
               <p className="text-sm text-gray-400">
                 Get detailed information about all players on your team including their champion mastery and recent performance.
               </p>
             </div>
             
-            <div className="bg-gray-700 rounded-lg p-4">
+            <div className="bg-gray-800 rounded-lg p-4">
               <h3 className="font-semibold mb-2 text-green-400">Champion Recommendations</h3>
               <p className="text-sm text-gray-400">
                 Receive personalized champion suggestions based on team synergy and player proficiency.
               </p>
             </div>
             
-            <div className="bg-gray-700 rounded-lg p-4">
+            <div className="bg-gray-800 rounded-lg p-4">
               <h3 className="font-semibold mb-2 text-purple-400">Counter Picks</h3>
               <p className="text-sm text-gray-400">
                 Identify the best champions to counter your opponents' picks and gain strategic advantages.

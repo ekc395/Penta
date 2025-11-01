@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useSearchParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, TrendingUp, Target, Trophy } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { Champion, PlayerMatch } from '@/types'
 import { MatchCard } from '@/components/match/MatchCard'
 
@@ -62,7 +62,7 @@ export function ChampionDetailPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600">Champion not found</p>
-          <Link to={`/player/${summonerName}?region=${region}`} className="btn btn-primary mt-4">
+          <Link to={`/player/${encodeURIComponent(summonerName!)}?region=${region}`} className="btn btn-primary mt-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Profile
           </Link>
@@ -97,7 +97,7 @@ export function ChampionDetailPage() {
           className="mb-6"
         >
           <Link
-            to={`/player/${summonerName}?region=${region}`}
+            to={`/player/${encodeURIComponent(summonerName!)}?region=${region}`}
             className="inline-flex items-center text-gray-400 hover:text-gray-100 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

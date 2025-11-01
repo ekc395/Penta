@@ -202,29 +202,6 @@ export function PlayerPage() {
             </div>
           )}
         </motion.div>
-
-        {/* Get Recommendations CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="card bg-gradient-to-r from-primary-950 to-secondary-950 border-primary-800"
-        >
-          <div className="text-center">
-            <h3 className="text-xl font-semibold text-gray-100 mb-2">
-              Ready for champion recommendations?
-            </h3>
-            <p className="text-gray-400 mb-6">
-              Get personalized champion suggestions based on your playstyle and current game context.
-            </p>
-            <Link
-              to={`/recommendations?summonerName=${encodeURIComponent(player.summonerName)}&region=${player.region}`}
-              className="btn btn-primary"
-            >
-              Get Recommendations
-            </Link>
-          </div>
-        </motion.div>
       </div>
     </div>
   )

@@ -34,21 +34,6 @@ export function PlayerPage() {
       } catch (playerError) {
         console.log('Full player data not available, falling back to profile:', playerError)
       }
-      
-      const profile = await summonerApi.getProfile(name, region)
-      const playerFromApi: Player = {
-        id: 0,
-        summonerName: profile.summonerName,
-        puuid: profile.puuid,
-        summonerId: profile.summonerId,
-        region: profile.region,
-        summonerLevel: profile.summonerLevel,
-        profileIconUrl: profile.profileIconUrl,
-        lastUpdated: new Date().toISOString(),
-        recentChampions: [],
-        recentMatches: [],
-      }
-      setPlayer(playerFromApi)
     } catch (err) {
       console.error('Failed to fetch player data:', err)
       setError('Failed to load player data')

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search, Target, Users, TrendingUp, ArrowRight } from 'lucide-react'
 import { REGIONS } from '@/constants'
@@ -7,8 +8,10 @@ import { summonerApi } from '@/services/api'
 import { PlayerAutofill, PlayerSuggestion } from '@/components/search/PlayerAutofill'
 import TextType from '@/components/ui/TextType'
 import LightRays from '@/components/ui/LightRays'
+import { useScrollAnimation } from '@/hooks/useScrollAnimation'
 
 export function HomePage() {
+  const navigate = useNavigate()
   const [summonerName, setSummonerName] = useState('')
   const [riotTagline, setRiotTagline] = useState('')
   const [region, setRegion] = useState<Region>('na1')
@@ -16,6 +19,7 @@ export function HomePage() {
   const [error, setError] = useState<string | null>(null)
   const [showAutofill, setShowAutofill] = useState(false)
   const regions = REGIONS
+  const featureRefs = useScrollAnimation()
 
   const handleSearch = async () => {
     if (!summonerName.trim()) {
@@ -23,11 +27,11 @@ export function HomePage() {
       return
     }
     
-    if (isLoading) return; // Add this extra guard
+    if (isLoading) return
     
     setIsLoading(true)
     setError(null)
-    setShowAutofill(false) // Close autofill on search
+    setShowAutofill(false)
     try {
       const fullName = riotTagline.trim() 
         ? `${summonerName.trim()}#${riotTagline.trim()}`
@@ -38,14 +42,14 @@ export function HomePage() {
       if (response.status === 'collecting') {
         setError('Collecting player data... Please wait 15 seconds.')
         setTimeout(() => {
-          window.location.href = `/player/${encodeURIComponent(fullName)}?region=${region}`
+          navigate(`/player/${encodeURIComponent(fullName)}?region=${region}`)
         }, 15000)
       } else {
-        window.location.href = `/player/${encodeURIComponent(fullName)}?region=${region}`
+        navigate(`/player/${encodeURIComponent(fullName)}?region=${region}`)
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to find summoner.')
-      setIsLoading(false) // Only re-enable on error
+      setIsLoading(false)
     }
   }
 
@@ -60,72 +64,6 @@ export function HomePage() {
     setSummonerName(value)
     setShowAutofill(value.length >= 2)
   }
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const section = document.querySelector('.features-section') as HTMLElement
-      const contentItems = document.querySelectorAll('.feature-content-item') as NodeListOf<HTMLElement>
-      const heading = document.querySelector('.features-heading') as HTMLElement
-      
-      if (!section || !contentItems.length) return
-
-      const sectionTop = section.offsetTop
-      const sectionHeight = section.offsetHeight
-      const scrollY = window.scrollY
-      const viewportHeight = window.innerHeight
-
-      // Calculate scroll progress through the section (0 to 1)
-      const scrollProgress = (scrollY - sectionTop) / (sectionHeight - viewportHeight)
-      const clampedProgress = Math.max(0, Math.min(1, scrollProgress))
-
-      // Animate heading - fade in during first 10% of scroll
-      if (heading) {
-        const headingProgress = Math.min(clampedProgress / 0.1, 1)
-        heading.style.opacity = `${headingProgress}`
-        heading.style.transform = `translateY(${30 * (1 - headingProgress)}px)`
-      }
-
-      const totalItems = contentItems.length
-      const progressPerItem = 1 / totalItems
-
-      contentItems.forEach((item, index) => {
-        const itemStartProgress = index * progressPerItem
-        const itemEndProgress = (index + 1) * progressPerItem
-        
-        let opacity = 0
-        let translateY = 20
-        
-        if (clampedProgress >= itemStartProgress && clampedProgress <= itemEndProgress) {
-          // This item is active
-          const itemProgress = (clampedProgress - itemStartProgress) / progressPerItem
-          
-          // Fade in for first 20%, stay visible for 60%, fade out for last 20%
-          if (itemProgress < 0.2) {
-            opacity = itemProgress / 0.2
-            translateY = 20 * (1 - itemProgress / 0.2)
-          } else if (itemProgress < 0.8) {
-            opacity = 1
-            translateY = 0
-          } else {
-            opacity = (1 - itemProgress) / 0.2
-            translateY = -20 * ((itemProgress - 0.8) / 0.2)
-          }
-        } else if (clampedProgress > itemEndProgress) {
-          // Item has passed
-          opacity = 0
-          translateY = -20
-        }
-        
-        item.style.opacity = `${opacity}`
-        item.style.transform = `translateY(${translateY}px)`
-      })
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll() // Initial call
-
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   return (
     <div className="min-h-screen bg-zinc-950">
@@ -330,6 +268,9 @@ export function HomePage() {
               ].map((feature, index) => (
                 <div
                   key={index}
+                  ref={(el) => {
+                    if (el) featureRefs.current[index] = el
+                  }}
                   className="feature-content-item absolute inset-0 flex flex-col items-center justify-center text-center px-6 md:px-12"
                   style={{
                     opacity: 0,

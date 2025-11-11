@@ -311,8 +311,21 @@ export function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="min-h-screen bg-transparent flex items-center justify-center relative">
+      
+      {/* <section className="min-h-screen bg-transparent flex items-center justify-center relative">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
+          <div className="opacity-50 object-contain pointer-events-none">
+            <img src={Iron} alt="Iron Rank" className="w-40 h-40" />
+            <img src={Bronze} alt="Bronze Rank" className="w-40 h-40" />
+            <img src={Silver} alt="Silver Rank" className="w-40 h-40" />
+            <img src={Gold} alt="Gold Rank" className="w-40 h-40" />
+            <img src={Platinum} alt="Platinum Rank" className="w-40 h-40" />
+            <img src={Emerald} alt="Emerald Rank" className="w-40 h-40" />
+            <img src={Diamond} alt="Diamond Rank" className="w-40 h-40" />
+            <img src={Master} alt="Master Rank" className="w-40 h-40" />
+            <img src={Grandmaster} alt="Grandmaster Rank" className="w-40 h-40" />
+            <img src={Challenger} alt="Challenger Rank" className="w-40 h-40" />
+          </div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -334,17 +347,64 @@ export function HomePage() {
               <span>Get Started</span>
               <ArrowRight className="w-6 h-6" />
             </button>
-            <img src={Iron} alt="Iron Rank" className="w-full h-full object-contain" />
-            <img src={Bronze} alt="Bronze Rank" className="w-full h-full object-contain" />
-            <img src={Silver} alt="Silver Rank" className="w-full h-full object-contain" />
-            <img src={Gold} alt="Gold Rank" className="w-full h-full object-contain" />
-            <img src={Platinum} alt="Platinum Rank" className="w-full h-full object-contain" />
-            <img src={Emerald} alt="Emerald Rank" className="w-full h-full object-contain" />
-            <img src={Diamond} alt="Diamond Rank" className="w-full h-full object-contain" />
-            <img src={Master} alt="Master Rank" className="w-full h-full object-contain" />
-            <img src={Grandmaster} alt="Grandmaster Rank" className="w-full h-full object-contain" />
-            <img src={Challenger} alt="Challener Rank" className="w-full h-full object-contain" />
           </motion.div>
+        </div>
+      </section> */}
+
+
+      <section className="min-h-screen bg-transparent flex items-center justify-center relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
+
+          {/* Grid layout for logos around text */}
+          <div className="grid grid-cols-[1fr_auto_1fr] grid-rows-[auto_auto_auto] items-center justify-center gap-4">
+
+            {/* Top row logos */}
+            <img src={Iron} alt="Iron Rank" className="w-32 h-32 justify-self-end" />
+            <img src={Bronze} alt="Bronze Rank" className="w-32 h-32 justify-self-center" />
+            <img src={Silver} alt="Silver Rank" className="w-32 h-32 justify-self-start" />
+
+            {/* Left side logos */}
+            <div className="flex flex-col justify-center space-y-4 row-span-3 justify-self-end">
+              <img src={Gold} alt="Gold Rank" className="w-32 h-32" />
+              <img src={Platinum} alt="Platinum Rank" className="w-32 h-32" />
+            </div>
+
+            {/* Center text */}
+            <div className="text-center row-span-3">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+              >
+                <h2 className="text-5xl md:text-7xl font-bold text-gray-100 mb-8">
+                  Ready to Climb the Ranks?
+                </h2>
+                <p className="text-2xl md:text-3xl text-gray-400 mb-12 max-w-4xl mx-auto">
+                  Start getting personalized champion recommendations today and improve your gameplay.
+                </p>
+                <button
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                  className="inline-flex items-center space-x-3 px-12 py-5 text-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-2xl transition-colors shadow-lg hover:shadow-xl"
+                >
+                  <span>Get Started</span>
+                  <ArrowRight className="w-6 h-6" />
+                </button>
+              </motion.div>
+            </div>
+
+            {/* Right side logos */}
+            <div className="flex flex-col justify-center space-y-4 row-span-3 justify-self-start">
+              <img src={Emerald} alt="Emerald Rank" className="w-32 h-32" />
+              <img src={Diamond} alt="Diamond Rank" className="w-32 h-32" />
+            </div>
+
+            {/* Bottom row logos */}
+            <img src={Master} alt="Master Rank" className="w-32 h-32 justify-self-end" />
+            <img src={Grandmaster} alt="Grandmaster Rank" className="w-32 h-32 justify-self-center" />
+            <img src={Challenger} alt="Challenger Rank" className="w-32 h-32 justify-self-start" />
+
+          </div>
         </div>
       </section>
     </div>

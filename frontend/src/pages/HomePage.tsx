@@ -9,6 +9,7 @@ import { PlayerAutofill, PlayerSuggestion } from '@/components/search/PlayerAuto
 import TextType from '@/components/ui/TextType'
 import LightRays from '@/components/ui/LightRays'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
+import { Iron, Bronze, Silver, Gold, Platinum, Emerald, Diamond, Master, Grandmaster, Challenger } from '@/assets'
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -333,6 +334,16 @@ export function HomePage() {
               <span>Get Started</span>
               <ArrowRight className="w-6 h-6" />
             </button>
+            <img src={Iron} alt="Iron Rank" className="w-full h-full object-contain" />
+            <img src={Bronze} alt="Bronze Rank" className="w-full h-full object-contain" />
+            <img src={Silver} alt="Silver Rank" className="w-full h-full object-contain" />
+            <img src={Gold} alt="Gold Rank" className="w-full h-full object-contain" />
+            <img src={Platinum} alt="Platinum Rank" className="w-full h-full object-contain" />
+            <img src={Emerald} alt="Emerald Rank" className="w-full h-full object-contain" />
+            <img src={Diamond} alt="Diamond Rank" className="w-full h-full object-contain" />
+            <img src={Master} alt="Master Rank" className="w-full h-full object-contain" />
+            <img src={Grandmaster} alt="Grandmaster Rank" className="w-full h-full object-contain" />
+            <img src={Challenger} alt="Challener Rank" className="w-full h-full object-contain" />
           </motion.div>
         </div>
       </section>

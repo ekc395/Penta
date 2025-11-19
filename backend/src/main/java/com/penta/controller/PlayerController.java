@@ -15,6 +15,7 @@ import com.penta.repository.PlayerRepository;
 import com.penta.repository.PlayerChampionRepository;
 import com.penta.repository.PlayerMatchRepository;
 import com.penta.service.RiotApiService;
+import com.penta.service.DataCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,9 @@ public class PlayerController {
     
     @Autowired
     private RiotApiService riotApiService;
+
+    @Autowired
+    private DataCollectionService dataCollectionService;
     
     @GetMapping("/{summonerName}")
     public ResponseEntity<PlayerDto> getPlayer(
@@ -53,6 +57,19 @@ public class PlayerController {
         }
         
         Player player = playerOpt.get();
+        
+        boolean needsUpdate = player.getLastUpdated() == null || 
+        player.getLastUpdated().isBefore(LocalDateTime.now().minusMinutes(15));
+        if (needsUpdate) {
+            try {
+                dataCollectionService.collectPlayerDataSync(summonerName, region, 20);
+                playerOpt = playerRepository.findBySummonerName(summonerName);
+                player = playerOpt.orElse(player);
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+        }
+
         PlayerDto dto = convertToDto(player);
         
         return ResponseEntity.ok(dto);

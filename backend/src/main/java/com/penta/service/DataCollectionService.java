@@ -77,12 +77,67 @@ public class DataCollectionService {
         
         return CompletableFuture.completedFuture(null);
     }
+
+    /**
+     * Synchronous version - waits for completion (use for real-time updates)
+     */
+    @Transactional
+    public void collectPlayerDataSync(String summonerName, String region, int matchCount) {
+        try {
+            Optional<Player> existingPlayerOpt = playerRepository.findBySummonerName(summonerName);
+            Player player;
+            
+            if (existingPlayerOpt.isPresent()) {
+                player = existingPlayerOpt.get();
+                
+                Optional<Player> freshDataOpt = riotApiService.getPlayerBySummonerName(summonerName, region);
+                if (freshDataOpt.isPresent()) {
+                    Player freshData = freshDataOpt.get();
+                    player.setPuuid(freshData.getPuuid());
+                    player.setSummonerId(freshData.getSummonerId());
+                    player.setRegion(freshData.getRegion());
+                    player.setSummonerLevel(freshData.getSummonerLevel());
+                    player.setProfileIconUrl(freshData.getProfileIconUrl());
+                }
+            } else {
+                Optional<Player> playerOpt = riotApiService.getPlayerBySummonerName(summonerName, region);
+                if (playerOpt.isEmpty()) {
+                    throw new RuntimeException("Player not found: " + summonerName);
+                }
+                player = playerOpt.get();
+            }
+            
+            playerRepository.save(player);
+            
+            List<String> matchIds = riotApiService.getMatchHistory(player.getPuuid(), region, matchCount);
+            
+            for (String matchId : matchIds) {
+                processMatch(matchId, region);
+                createPlayerMatchRecords(player, matchId);
+            }
+            
+            updatePlayerChampionStats(player);
+            
+            player.setLastUpdated(LocalDateTime.now());
+            playerRepository.save(player);
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Error collecting player data: " + e.getMessage(), e);
+        }
+    }
     
     private void createPlayerMatchRecords(Player player, String matchId) {
         Optional<Match> matchOpt = matchRepository.findByMatchId(matchId);
         if (matchOpt.isEmpty()) return;
         
         Match match = matchOpt.get();
+        
+        Optional<PlayerMatch> existingPlayerMatch = playerMatchRepository
+            .findByPlayerAndMatchId(player, matchId);
+        
+        if (existingPlayerMatch.isPresent()) {
+            return;
+        }
         
         // Find the participant that matches this player
         match.getParticipants().stream()
@@ -92,7 +147,7 @@ public class DataCollectionService {
                 PlayerMatch pm = new PlayerMatch();
                 pm.setPlayer(player);
                 pm.setChampion(participant.getChampion());
-                pm.setMatch(match);  // ADD THIS - links to full match with all participants
+                pm.setMatch(match);
                 pm.setMatchId(matchId);
                 pm.setGameMode(match.getGameMode());
                 pm.setGameType(match.getGameType());
@@ -106,7 +161,6 @@ public class DataCollectionService {
                 pm.setLane(participant.getIndividualPosition());
                 pm.setRole(participant.getTeamPosition());
                 pm.setTeamId(participant.getTeamId());
-                // ADD THESE - damage, gold, vision stats
                 pm.setDamageDealt(participant.getDamageDealt());
                 pm.setDamageTaken(participant.getDamageTaken());
                 pm.setGoldEarned(participant.getGoldEarned());
@@ -117,6 +171,7 @@ public class DataCollectionService {
                 playerMatchRepository.save(pm);
             });
     }
+
     private void updatePlayerChampionStats(Player player) {
         // Get all matches for this player
         List<PlayerMatch> matches = playerMatchRepository.findByPlayerOrderByGameStartTimeDesc(player);

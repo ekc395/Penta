@@ -281,7 +281,10 @@ public class RiotApiService {
         participant.setParticipantId(dto.getParticipantId());
         participant.setSummonerId(dto.getSummonerId());
         participant.setPuuid(dto.getPuuid());
-        participant.setSummonerName(dto.getSummonerName());
+        String displayName = (dto.getRiotIdGameName() != null && !dto.getRiotIdGameName().isEmpty()) 
+            ? dto.getRiotIdGameName() 
+            : dto.getSummonerName();
+        participant.setSummonerName(displayName);
         participant.setTeamId(dto.getTeamId());
         participant.setIndividualPosition(dto.getIndividualPosition());
         participant.setTeamPosition(dto.getTeamPosition());

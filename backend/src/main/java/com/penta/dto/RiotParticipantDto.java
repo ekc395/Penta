@@ -8,6 +8,8 @@ public class RiotParticipantDto {
     private String puuid;
     private String summonerId;
     private String summonerName;
+    private String riotIdGameName;  
+    private String riotIdTagline;  
     private int championId;
     private int teamId;
     private String individualPosition;

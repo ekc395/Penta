@@ -314,16 +314,16 @@ export function HomePage() {
       <section className="min-h-screen bg-transparent flex items-center justify-center relative overflow-hidden">
         {/* Scattered Rank Logos */}
         {[
-          { img: Iron, top: '15%', left: '25%', size: 'w-40 h-40' },
-          { img: Bronze, top: '10%', left: '47%', size: 'w-40 h-40' },
-          { img: Silver, top: '30%', right: '15%', size: 'w-40 h-40' },
-          { img: Gold, top: '30%', left: '15%', size: 'w-40 h-40' },
-          { img: Platinum, top: '15%', right: '25%', size: 'w-40 h-40' },
-          { img: Emerald, top: '60%', left: '12%', size: 'w-40 h-40' },
-          { img: Diamond, top: '60%', right: '12%', size: 'w-40 h-40' },
-          { img: Master, top: '75%', left: '23%', size: 'w-40 h-40' },
-          { img: Grandmaster, top: '82%', left: '47%', size: 'w-40 h-40' },
-          { img: Challenger, top: '75%', right: '23%', size: 'w-40 h-40' },
+          { img: Iron, top: '8%', left: '8%', size: 'w-28 h-28' },
+          { img: Bronze, top: '4%', left: '35%', size: 'w-28 h-28' },
+          { img: Silver, top: '6%', right: '5%', size: 'w-28 h-28' },
+          { img: Gold, top: '30%', left: '3%', size: 'w-28 h-28' },
+          { img: Platinum, top: '15%', right: '27%', size: 'w-28 h-28' },
+          { img: Emerald, top: '58%', left: '5%', size: 'w-28 h-28' },
+          { img: Diamond, top: '50%', right: '7%', size: 'w-28 h-28' }, 
+          { img: Master, top: '78%', left: '18%', size: 'w-28 h-28' },
+          { img: Grandmaster, top: '85%', left: '45%', size: 'w-28 h-28' },
+          { img: Challenger, top: '82%', right: '10%', size: 'w-28 h-28' },
         ].map((rank, index) => (
           <motion.img
             key={index}

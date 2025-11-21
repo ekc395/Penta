@@ -9,7 +9,7 @@ import { PlayerAutofill, PlayerSuggestion } from '@/components/search/PlayerAuto
 import TextType from '@/components/ui/TextType'
 import LightRays from '@/components/ui/LightRays'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
-import { Iron, Bronze, Silver, Gold, Platinum, Emerald, Diamond, Master, Grandmaster, Challenger } from '@/assets'
+import { RankLogos } from '@/components/ui/RankLogos'
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -312,44 +312,7 @@ export function HomePage() {
 
       {/* CTA Section */}
       <section className="min-h-screen bg-transparent flex items-center justify-center relative overflow-hidden">
-        {/* Scattered Rank Logos */}
-        {[
-          { img: Iron, top: '8%', left: '8%', size: 'w-28 h-28' },
-          { img: Bronze, top: '4%', left: '35%', size: 'w-28 h-28' },
-          { img: Silver, top: '6%', right: '5%', size: 'w-28 h-28' },
-          { img: Gold, top: '30%', left: '3%', size: 'w-28 h-28' },
-          { img: Platinum, top: '15%', right: '27%', size: 'w-28 h-28' },
-          { img: Emerald, top: '58%', left: '5%', size: 'w-28 h-28' },
-          { img: Diamond, top: '50%', right: '7%', size: 'w-28 h-28' }, 
-          { img: Master, top: '78%', left: '18%', size: 'w-28 h-28' },
-          { img: Grandmaster, top: '85%', left: '45%', size: 'w-28 h-28' },
-          { img: Challenger, top: '82%', right: '10%', size: 'w-28 h-28' },
-        ].map((rank, index) => (
-          <motion.img
-            key={index}
-            src={rank.img}
-            alt={`Rank ${index + 1}`}
-            className={`${rank.size} absolute opacity-40 hover:opacity-70 transition-opacity duration-300 pointer-events-none`}
-            style={{
-              top: rank.top,
-              left: rank.left,
-              right: rank.right,
-            }}
-            initial={{ opacity: 0.65, scale: 1 }}
-            whileInView={{ opacity: 0.65, scale: 1 }}
-            animate={{
-              y: [0, -20, 0],
-            }}
-            transition={{
-              duration: 3 + (index * 0.2),
-              delay: index * 0.1,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            viewport={{ once: true }}
-          />
-        ))}
-
+        <RankLogos />
         {/* Center Content */}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
           <div className="text-center">

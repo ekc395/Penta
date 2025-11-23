@@ -16,6 +16,9 @@ public class RiotApiConfig {
     
     @Value("${riot.api.timeout}")
     private int timeout;
+
+    @Value("${ddragon.version}")
+    private String ddragonVersion;
     
     @Bean
     public WebClient riotWebClient() {
@@ -35,5 +38,9 @@ public class RiotApiConfig {
     
     public int getTimeout() {
         return timeout;
+    }
+    
+    public String getDdragonVersion() {
+        return ddragonVersion;
     }
 }

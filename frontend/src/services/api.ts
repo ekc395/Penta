@@ -62,6 +62,14 @@ export const summonerApi = {
   }
 }
 
+export const configApi = {
+  getDdragonVersion: async (): Promise<string> => {
+    const response = await fetch('http://localhost:8080/api/config/ddragon-version')
+    const data = await response.json()
+    return data.version
+  }
+}
+
 export const championRecommendationApi = {
   /**
    * Get champion recommendations for a player

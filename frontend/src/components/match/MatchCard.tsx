@@ -1,12 +1,16 @@
 import { PlayerMatch, MatchParticipant } from '@/types'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
+import { useDdragonVersion } from '@/hooks/UseDdragonVersion'
+
 
 interface MatchCardProps {
   match: PlayerMatch
 }
 
 export function MatchCard({ match }: MatchCardProps) {
+  const ddragonVersion = useDdragonVersion()
+
   const [expanded, setExpanded] = useState(false)
   const kda = match.deaths > 0 
     ? ((match.kills + match.assists) / match.deaths).toFixed(2)
@@ -35,10 +39,10 @@ export function MatchCard({ match }: MatchCardProps) {
   const team2Kills = team2.reduce((sum, p) => sum + p.kills, 0)
   const team1Gold = team1.reduce((sum, p) => sum + p.goldEarned, 0)
   const team2Gold = team2.reduce((sum, p) => sum + p.goldEarned, 0)
-
+  
   const getItemUrl = (itemId: number) => {
     if (!itemId || itemId === 0) return null
-    return `https://ddragon.leagueoflegends.com/cdn/15.21.1/img/item/${itemId}.png`
+    return `https://ddragon.leagueoflegends.com/cdn/${ddragonVersion}/img/item/${itemId}.png`
   }
 
   const renderParticipant = (participant: MatchParticipant, isPlayerTeam: boolean, index: number) => {

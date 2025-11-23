@@ -75,8 +75,8 @@ public class RiotApiService {
                 player.setSummonerId(summoner.getId());
                 player.setRegion(region);
                 player.setSummonerLevel(summoner.getSummonerLevel());
-                player.setProfileIconUrl(String.format("https://ddragon.leagueoflegends.com/cdn/15.21.1/img/profileicon/%d.png", 
-                    summoner.getProfileIconId()));
+                player.setProfileIconUrl(String.format("https://ddragon.leagueoflegends.com/cdn/%s/img/profileicon/%d.png", 
+                    riotApiConfig.getDdragonVersion(), summoner.getProfileIconId()));
                 player.setLastUpdated(LocalDateTime.now());
                 
                 return Optional.of(player);
@@ -218,7 +218,8 @@ public class RiotApiService {
     public List<Champion> getAllChampions() {
         try {
             // Use Data Dragon instead of the API
-            String url = "https://ddragon.leagueoflegends.com/cdn/15.21.1/data/en_US/champion.json";
+            String url = String.format("https://ddragon.leagueoflegends.com/cdn/%s/data/en_US/champion.json", 
+                riotApiConfig.getDdragonVersion());
             
             WebClient ddragonClient = WebClient.create();
             RiotChampionsDto champions = ddragonClient
@@ -324,8 +325,8 @@ public class RiotApiService {
         champion.setChampionId(championDto.getKey() != null ? Integer.parseInt(championDto.getKey()) : 0);
         champion.setName(championDto.getName());
         champion.setTitle(championDto.getTitle());
-        champion.setImageUrl(String.format("https://ddragon.leagueoflegends.com/cdn/15.21.1/img/champion/%s.png", 
-            championDto.getId()));
+        champion.setImageUrl(String.format("https://ddragon.leagueoflegends.com/cdn/%s/img/champion/%s.png", 
+            riotApiConfig.getDdragonVersion(), championDto.getId()));
         champion.setSplashUrl(String.format("https://ddragon.leagueoflegends.com/cdn/img/champion/splash/%s_0.jpg", 
                 championDto.getId()));
         champion.setTags(String.join(",", championDto.getTags()));

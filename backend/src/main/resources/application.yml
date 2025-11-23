@@ -60,3 +60,6 @@ logging:
   level:
     com.penta: DEBUG
     org.springframework.web: DEBUG
+
+ddragon:
+  version: 15.23.1

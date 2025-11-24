@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom'
 import { Player } from '@/types'
 import { summonerApi } from '@/services/api'
 import { ChampionCard } from '@/components/champion/ChampionCard'
+import { MatchCard } from '@/components/match/MatchCard'
 
 export function PlayerPage() {
   const { summonerName } = useParams<{ summonerName: string }>()
@@ -143,6 +144,8 @@ export function PlayerPage() {
           </div>
         </motion.div>
 
+
+
         {/* Recent Champions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -187,7 +190,39 @@ export function PlayerPage() {
             </div>
           )}
         </motion.div>
+
+        {/* Match History */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mb-8"
+        >
+          <h2 className="text-2xl font-semibold text-gray-100 mb-6">
+            Match History
+          </h2>
+          
+          {player.recentMatches && player.recentMatches.length > 0 ? (
+            <div className="space-y-3">
+              {player.recentMatches.map((match) => (
+                <MatchCard key={match.id} match={match} />
+              ))}
+            </div>
+          ) : (
+            <div className="card text-center py-12">
+              <Target className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-100 mb-2">
+                No match history available
+              </h3>
+              <p className="text-gray-400">
+                Recent games could not be loaded.
+              </p>
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   )
 }
+
+       

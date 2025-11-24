@@ -2,6 +2,7 @@ import { PlayerMatch, MatchParticipant } from '@/types'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useState } from 'react'
 import { useDdragonVersion } from '@/hooks/UseDdragonVersion'
+import { calculatePentaScore} from '@/utils/pentaScore'
 
 
 interface MatchCardProps {
@@ -49,12 +50,12 @@ export function MatchCard({ match }: MatchCardProps) {
     const participantKda = participant.deaths > 0
       ? ((participant.kills + participant.assists) / participant.deaths).toFixed(2)
       : 'Perfect'
+    
+    // Calculate Penta Score
+    const pentaScore = calculatePentaScore(participant, match.participants || [], match.gameDuration)
   
     return (
-      <div 
-        // Remove the key from here
-        className={`flex items-center gap-3 py-2 px-3 ${isPlayerTeam ? 'bg-blue-900/10' : 'bg-red-900/10'} rounded`}
-      >
+      <div className={`flex items-center gap-3 py-2 px-3 ${isPlayerTeam ? 'bg-blue-900/10' : 'bg-red-900/10'} rounded`}>
         {/* Champion */}
         <div className="flex items-center gap-2 w-48">
           <img 
@@ -71,7 +72,23 @@ export function MatchCard({ match }: MatchCardProps) {
             </div>
           </div>
         </div>
-
+        {/* Penta Score */}
+        <div className="w-20 text-center">
+          <div className="text-lg font-semibold text-gray-300">
+            {pentaScore.score.toFixed(1)}
+          </div>
+          {pentaScore.badge ? (
+            <span className={`text-xs px-2 py-0.5 rounded font-bold ${
+              pentaScore.badge === 'MVP' ? 'bg-orange-500 text-white' : 'bg-purple-500 text-white'
+            }`}>
+              {pentaScore.badge}
+            </span>
+          ) : (
+            <span className="text-xs px-2 py-0.5 rounded bg-gray-700 text-gray-400">
+              {pentaScore.rank}{pentaScore.rank === 1 ? 'st' : pentaScore.rank === 2 ? 'nd' : pentaScore.rank === 3 ? 'rd' : 'th'}
+            </span>
+          )}
+        </div>
         {/* KDA */}
         <div className="w-32 text-center">
           <div className="text-sm text-gray-200">

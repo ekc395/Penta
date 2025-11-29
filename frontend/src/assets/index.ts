@@ -9,6 +9,7 @@ import Master from './Master.png'
 import Grandmaster from './Grandmaster.webp'
 import Challenger from './Challenger.webp'
 import PentaLogo from './PentaLogo.png'
+import SummonersRift from "./SummonersRift.webp"
 
 export {
   Iron,
@@ -21,5 +22,6 @@ export {
   Master,
   Grandmaster,
   Challenger,
-  PentaLogo
+  PentaLogo,
+  SummonersRift
 }

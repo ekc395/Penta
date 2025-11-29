@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Search, Target, Users, TrendingUp, ArrowRight } from 'lucide-react'
+import { Search, Target, Users, TrendingUp } from 'lucide-react'
 import { REGIONS } from '@/constants'
 import { Region } from '@/types'
 import { summonerApi } from '@/services/api'
@@ -9,7 +9,7 @@ import { PlayerAutofill, PlayerSuggestion } from '@/components/search/PlayerAuto
 import TextType from '@/components/ui/TextType'
 import LightRays from '@/components/ui/LightRays'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
-import { RankLogos } from '@/components/ui/RankLogos'
+import { AnimatedPin } from '@/components/ui/AnimatedPin'
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -312,32 +312,7 @@ export function HomePage() {
 
       {/* CTA Section */}
       <section className="min-h-screen bg-transparent flex items-center justify-center relative overflow-hidden">
-        <RankLogos />
-        {/* Center Content */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
-          <div className="text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <h2 className="text-5xl md:text-7xl font-bold text-gray-100 mb-8">
-                Ready to Climb the Ranks?
-              </h2>
-              <p className="text-2xl md:text-3xl text-gray-400 mb-12 max-w-4xl mx-auto">
-                Start getting personalized champion recommendations today and improve your gameplay.
-              </p>
-              <button
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="inline-flex items-center space-x-3 px-12 py-5 text-xl bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-2xl transition-colors shadow-lg hover:shadow-xl"
-              >
-                <span>Get Started</span>
-                <ArrowRight className="w-6 h-6" />
-              </button>
-            </motion.div>
-          </div>
-        </div>
+        <AnimatedPin onGetStarted={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
       </section>
     </div>
   )

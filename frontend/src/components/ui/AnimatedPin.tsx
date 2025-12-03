@@ -15,21 +15,19 @@ export function AnimatedPin({ onGetStarted }: AnimatedPinProps) {
     e.preventDefault()
     setIsDiving(true)
     
-    // Trigger flash earlier (during zoom)
+    // This is so hacky
     setTimeout(() => {
       setIsFlashing(true)
-    }, 350) // Flash starts sooner
+    }, 350)
     
-    // Start scrolling at max zoom
     setTimeout(() => {
       onGetStarted?.()
     }, 800)
     
-    // Clean up after longer flash
     setTimeout(() => {
       setIsDiving(false)
       setIsFlashing(false)
-    }, 2200) // Extended to accommodate longer flash
+    }, 2200)
   }
 
   return (
@@ -76,11 +74,11 @@ export function AnimatedPin({ onGetStarted }: AnimatedPinProps) {
         </PinContainer>
       </motion.div>
 
-      {/* Full screen cyan flash - starts sooner and lasts longer */}
+      {/* Full screen cyan flash */}
       <AnimatePresence>
         {isFlashing && (
           <>
-            {/* Main cyan flash covering entire screen - LONGER */}
+            {/* Main cyan flash covering entire screen */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ 
@@ -88,13 +86,13 @@ export function AnimatedPin({ onGetStarted }: AnimatedPinProps) {
               }}
               exit={{ opacity: 0 }}
               transition={{ 
-                duration: 1.4, // Increased from 0.8
+                duration: 1.4,
                 times: [0, 0.15, 0.4, 0.7, 1]
               }}
               className="fixed inset-0 z-[10000] bg-cyan-500 pointer-events-none"
             />
             
-            {/* Bright cyan-white flash at the peak - LONGER */}
+            {/* Bright cyan-white flash at the peak */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ 
@@ -102,30 +100,10 @@ export function AnimatedPin({ onGetStarted }: AnimatedPinProps) {
               }}
               exit={{ opacity: 0 }}
               transition={{ 
-                duration: 1.0, // Increased from 0.5
+                duration: 1.0,
                 times: [0, 0.3, 0.6, 1]
               }}
               className="fixed inset-0 z-[10001] bg-cyan-200 pointer-events-none"
-            />
-
-            {/* Radial burst effect in cyan - LONGER */}
-            <motion.div
-              initial={{ 
-                opacity: 0,
-                scale: 0
-              }}
-              animate={{ 
-                opacity: [0, 0.8, 0.8, 0],
-                scale: [0, 4, 5]
-              }}
-              exit={{ opacity: 0 }}
-              transition={{ 
-                duration: 1.4, // Increased from 0.8
-              }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full h-full pointer-events-none"
-              style={{
-                background: 'radial-gradient(circle, rgba(6, 182, 212, 0.9) 0%, rgba(8, 145, 178, 0.6) 30%, transparent 70%)'
-              }}
             />
           </>
         )}

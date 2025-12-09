@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { ScreenCapture } from '@/components/ui/ScreenCapture'
 
 export function LiveDraftPage() {
   const [summonerName, setSummonerName] = useState('')
@@ -76,17 +75,11 @@ export function LiveDraftPage() {
             </div>
           </div>
         </div>
-
         {error && (
           <div className="bg-red-600 text-white p-4 rounded-lg mb-6">
             {error}
           </div>
         )}
-
-        {/* Screen Capture Section */}
-        <div className="bg-zinc-800 rounded-lg p-8 text-center">
-          <ScreenCapture />
-        </div>
       </div>
     </div>
   )

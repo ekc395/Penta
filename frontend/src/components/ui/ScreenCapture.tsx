@@ -39,6 +39,7 @@ export function ScreenCapture() {
     return canvas.toDataURL("image/png");
   }
 
+  // IN PROGRESS
   async function sendFrame(image: string) {
     try {
       await fetch("http://localhost:3001/api/process-frame", {
@@ -52,8 +53,10 @@ export function ScreenCapture() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-        <label>Live Draft Analysis</label>
+    <div className="flex flex-col mb-8">
+        <div className="text-2xl font-semibold text-gray-100 mb-6">
+            <label>Live Draft Analysis</label>
+        </div>
         <video
         ref={videoRef}
         autoPlay

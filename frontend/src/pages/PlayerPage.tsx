@@ -1,3 +1,5 @@
+// POTENTIALLY NO NEED FOR THIS PAGE
+
 import { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -7,6 +9,7 @@ import { Player } from '@/types'
 import { summonerApi } from '@/services/api'
 import { ChampionCard } from '@/components/champion/ChampionCard'
 import { MatchCard } from '@/components/match/MatchCard'
+import { ScreenCapture } from '@/components/ui/ScreenCapture'
 
 export function PlayerPage() {
   const { summonerName } = useParams<{ summonerName: string }>()
@@ -144,7 +147,8 @@ export function PlayerPage() {
           </div>
         </motion.div>
 
-
+        {/* Screen Capture */}
+        <ScreenCapture />
 
         {/* Recent Champions */}
         <motion.div

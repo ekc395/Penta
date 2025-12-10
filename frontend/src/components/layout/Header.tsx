@@ -1,13 +1,8 @@
-import { Link, useLocation } from 'react-router-dom'
-import { User, Zap } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { User } from 'lucide-react'
 import PentaLogo from '@/assets/PentaLogo.png'
 
 export function Header() {
-  const location = useLocation()
-
-  const isActive = (path: string) => {
-    return location.pathname === path
-  }
 
   return (
     <header className="bg-zinc-950 shadow-sm border-b border-zinc-800">
@@ -20,31 +15,6 @@ export function Header() {
             </div>
             <span className="text-2xl font-bold">Penta</span>
           </Link>
-
-          {/* Navigation */}
-          <nav className="hidden md:flex space-x-8">
-            <Link
-              to="/"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive('/')
-                  ? 'text-primary-400 bg-gray-900'
-                  : 'text-gray-300 hover:text-primary-400 hover:bg-gray-900'
-              }`}
-            >
-              Home
-            </Link>
-            <Link
-              to="/live-draft"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive('/live-draft')
-                  ? 'text-primary-400 bg-gray-900'
-                  : 'text-gray-300 hover:text-primary-400 hover:bg-gray-900'
-              }`}
-            >
-              <Zap className="w-4 h-4 inline mr-1" />
-              Live Draft
-            </Link>
-          </nav>
 
           {/* User Actions */}
           <div className="flex items-center space-x-4">
